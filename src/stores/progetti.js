@@ -16,7 +16,7 @@ export const useProgettiStore = defineStore('progetti', () => {
       color: '#4A9EE5'
     },
     {
-      name: 'InvoiceX Template Engine',
+      name: 'Invoice Template Engine',
       description: 'Motore di template per la generazione automatica di documenti fiscali, preventivi e report personalizzati con esportazione multi-formato (PDF, XLSX, CSV).',
       tags: ['C#', '.NET', 'WPF', 'SQLite'],
       color: '#E8567F'
