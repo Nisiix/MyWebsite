@@ -23,17 +23,20 @@
     <section class="section projects-section">
       <div class="container">
         <div class="projects-grid">
-          <div
+          <component
+            :is="project.url ? 'a' : 'div'"
             v-for="(project, index) in store.projects"
             :key="index"
             class="project-card glass-card"
+            :class="{ 'is-link': project.url }"
+            v-bind="project.url ? { href: project.url, target: '_blank', rel: 'noopener noreferrer' } : {}"
             v-reveal="index"
           >
             <!-- Preview Image Area -->
             <div class="project-preview" :style="{ '--accent': project.color }">
               <div class="preview-pattern"></div>
               <div class="preview-icon">
-                <i class="pi pi-desktop"></i>
+                <i :class="project.icon || 'pi pi-desktop'"></i>
               </div>
 
             </div>
@@ -55,12 +58,20 @@
               </div>
 
               <!-- Explore Button -->
-              <button class="btn-explore" :style="{ '--accent': project.color }">
+              <span
+                v-if="project.url"
+                class="btn-explore"
+                :style="{ '--accent': project.color }"
+              >
+                <span>Visita il sito</span>
+                <i class="pi pi-external-link"></i>
+              </span>
+              <button v-else class="btn-explore" :style="{ '--accent': project.color }">
                 <span>Esplora</span>
                 <i class="pi pi-arrow-right"></i>
               </button>
             </div>
-          </div>
+          </component>
         </div>
 
         <!-- Contact Form -->
@@ -391,13 +402,19 @@ function handleSubmit() {
   transition: transform 0.3s var(--ease-smooth);
 }
 
-.btn-explore:hover {
+.project-card.is-link {
+  cursor: pointer;
+}
+
+.btn-explore:hover,
+.project-card.is-link:hover .btn-explore {
   background: color-mix(in srgb, var(--accent, var(--gold)) 10%, transparent);
   border-color: var(--accent, var(--gold));
   transform: translateX(4px);
 }
 
-.btn-explore:hover i {
+.btn-explore:hover i,
+.project-card.is-link:hover .btn-explore i {
   transform: translateX(4px);
 }
 
