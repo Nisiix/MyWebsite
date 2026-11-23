@@ -1,8 +1,9 @@
 <template>
   <div class="home-page">
     <!-- ============ HERO ============ -->
-    <section class="hero" id="hero-section">
+    <section class="hero" id="hero-section" @pointermove="trackHero">
       <div class="hero-bg-grid"></div>
+      <div class="hero-bg-grid hero-bg-grid-lit" aria-hidden="true"></div>
       <div class="hero-orb hero-orb-1"></div>
       <div class="hero-orb hero-orb-2"></div>
 
@@ -45,12 +46,12 @@
     <section class="section about-section" id="about-me">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">About Me</h2>
-          <p class="section-subtitle">Chi sono e cosa mi appassiona nel mondo dello sviluppo software.</p>
+          <h2 class="section-title" v-reveal>About Me</h2>
+          <p class="section-subtitle" v-reveal="1">Chi sono e cosa mi appassiona nel mondo dello sviluppo software.</p>
         </div>
 
         <div class="about-grid">
-          <div class="about-card glass-card">
+          <div class="about-card glass-card" v-reveal="1">
             <div class="about-icon-wrapper">
               <i class="pi pi-user"></i>
             </div>
@@ -68,7 +69,7 @@
             </p>
           </div>
 
-          <div class="about-card glass-card">
+          <div class="about-card glass-card" v-reveal="2">
             <div class="about-icon-wrapper">
               <i class="pi pi-compass"></i>
             </div>
@@ -96,12 +97,12 @@
     <section class="section activities-section" id="activities">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Activities</h2>
-          <p class="section-subtitle">Le attività che occupano le mie giornate nel mondo tech.</p>
+          <h2 class="section-title" v-reveal>Activities</h2>
+          <p class="section-subtitle" v-reveal="1">Le attività che occupano le mie giornate nel mondo tech.</p>
         </div>
 
         <div class="activities-grid">
-          <div class="activity-item glass-card" v-for="(activity, index) in activities" :key="index">
+          <div class="activity-item glass-card" v-for="(activity, index) in activities" :key="index" v-reveal="index">
             <div class="activity-number">{{ String(index + 1).padStart(2, '0') }}</div>
             <div class="activity-content">
               <h3 class="activity-title">{{ activity.title }}</h3>
@@ -119,12 +120,12 @@
     <section class="section hobbies-section" id="hobbies">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">Hobbies</h2>
-          <p class="section-subtitle">Quando non scrivo codice, ecco cosa mi tiene impegnato.</p>
+          <h2 class="section-title" v-reveal>Hobbies</h2>
+          <p class="section-subtitle" v-reveal="1">Quando non scrivo codice, ecco cosa mi tiene impegnato.</p>
         </div>
 
         <div class="hobbies-grid">
-          <div class="hobby-card glass-card" v-for="(hobby, index) in hobbies" :key="index">
+          <div class="hobby-card glass-card" v-for="(hobby, index) in hobbies" :key="index" v-reveal="index">
             <div class="hobby-emoji">{{ hobby.emoji }}</div>
             <h3 class="hobby-title">{{ hobby.title }}</h3>
             <p class="hobby-text">{{ hobby.description }}</p>
@@ -137,6 +138,13 @@
 
 <script setup>
 import { ref } from 'vue'
+
+// Lights up the background grid around the pointer
+const trackHero = (e) => {
+  const r = e.currentTarget.getBoundingClientRect()
+  e.currentTarget.style.setProperty('--hx', `${e.clientX - r.left}px`)
+  e.currentTarget.style.setProperty('--hy', `${e.clientY - r.top}px`)
+}
 
 const scrollToAbout = () => {
   const el = document.getElementById('about-me')
@@ -208,6 +216,27 @@ const hobbies = ref([
   -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
 }
 
+.hero-bg-grid-lit {
+  background-image:
+    linear-gradient(rgba(212, 175, 55, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.22) 1px, transparent 1px);
+  mask-image: radial-gradient(260px circle at var(--hx, 50%) var(--hy, 45%), black, transparent 70%);
+  -webkit-mask-image: radial-gradient(260px circle at var(--hx, 50%) var(--hy, 45%), black, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-smooth);
+  pointer-events: none;
+}
+
+.hero:hover .hero-bg-grid-lit {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .hero-bg-grid-lit {
+    opacity: 0.45;
+  }
+}
+
 .hero-orb {
   position: absolute;
   border-radius: 50%;
@@ -264,6 +293,16 @@ const hobbies = ref([
 
 .hero-badge i {
   font-size: 0.8rem;
+}
+
+.hero-title .gold-gradient {
+  background-size: 200% auto;
+  animation: goldSweep 6s ease-in-out infinite;
+}
+
+@keyframes goldSweep {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
 }
 
 .hero-title {

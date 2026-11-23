@@ -27,6 +27,7 @@
             v-for="(project, index) in store.projects"
             :key="index"
             class="project-card glass-card"
+            v-reveal="index"
           >
             <!-- Preview Image Area -->
             <div class="project-preview" :style="{ '--accent': project.color }">
@@ -64,7 +65,7 @@
 
         <!-- Contact Form -->
         <div class="contact-section">
-          <div class="contact-card glass-card">
+          <div class="contact-card glass-card" v-reveal>
             <div class="cta-glow"></div>
             <h3 class="cta-title">Vuoi collaborare?</h3>
             <p class="cta-text">
