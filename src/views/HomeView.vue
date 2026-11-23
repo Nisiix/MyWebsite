@@ -133,11 +133,71 @@
         </div>
       </div>
     </section>
+
+    <!-- ============ CONTATTI ============ -->
+    <section class="section contacts-section" id="contatti">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title" v-reveal>Contatti</h2>
+          <p class="section-subtitle" v-reveal="1">Hai un progetto in mente o vuoi solo fare due chiacchiere? Scrivimi.</p>
+        </div>
+
+        <div class="contact-card glass-card" v-reveal="2">
+          <div class="contact-email">
+            <div class="about-icon-wrapper">
+              <i class="pi pi-envelope"></i>
+            </div>
+            <a :href="'mailto:' + contatti.email" class="contact-email-link">{{ contatti.email }}</a>
+            <button
+              type="button"
+              class="btn-copy"
+              :class="{ copied }"
+              @click="copyEmail"
+              :aria-label="copied ? 'Email copiata' : 'Copia email'"
+            >
+              <i :class="copied ? 'pi pi-check' : 'pi pi-copy'"></i>
+              <span>{{ copied ? 'Copiata' : 'Copia' }}</span>
+            </button>
+          </div>
+
+          <div class="contact-socials">
+            <a
+              v-for="social in visibleSocials"
+              :key="social.name"
+              :href="social.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="social-link"
+            >
+              <i :class="social.icon"></i>
+              <span>{{ social.name }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useContattiStore } from '@/stores/contatti'
+
+const contatti = useContattiStore()
+const visibleSocials = computed(() => contatti.socials.filter((s) => s.url))
+
+const copied = ref(false)
+let copiedTimer
+async function copyEmail() {
+  try {
+    await navigator.clipboard.writeText(contatti.email)
+  } catch {
+    return
+  }
+  copied.value = true
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => (copied.value = false), 2000)
+}
 
 // Lights up the background grid around the pointer
 const trackHero = (e) => {
@@ -536,6 +596,118 @@ const hobbies = ref([
   line-height: 1.7;
 }
 
+/* ============ CONTATTI ============ */
+.contacts-section {
+  background: var(--bg-secondary);
+}
+
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.contact-email {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.contact-card:hover .about-icon-wrapper {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: var(--bg-primary);
+  transform: rotate(-5deg) scale(1.05);
+}
+
+.contact-email-link {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-white);
+  overflow-wrap: anywhere;
+  background: linear-gradient(var(--gold), var(--gold)) left bottom / 0 2px no-repeat;
+  transition: color 0.3s var(--ease-smooth), background-size 0.4s var(--ease-smooth);
+}
+
+.contact-email-link:hover {
+  color: var(--gold);
+  background-size: 100% 2px;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-medium);
+  border-radius: 100px;
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.btn-copy:hover {
+  color: var(--gold);
+  border-color: var(--border-gold);
+  background: var(--gold-subtle);
+}
+
+.btn-copy.copied {
+  color: var(--bg-primary);
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.btn-copy.copied i {
+  animation: copyPop 0.4s var(--ease-bounce);
+}
+
+@keyframes copyPop {
+  from { transform: scale(0.4); }
+  to { transform: scale(1); }
+}
+
+.contact-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.social-link i {
+  color: var(--gold);
+  font-size: 1.05rem;
+  transition: transform 0.3s var(--ease-bounce);
+}
+
+.social-link:hover {
+  color: var(--text-white);
+  border-color: var(--border-gold);
+  transform: translateY(-2px);
+}
+
+.social-link:hover i {
+  transform: scale(1.15) rotate(-6deg);
+}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
   .hero {
@@ -550,6 +722,15 @@ const hobbies = ref([
 
   .activity-number {
     font-size: 1.8rem;
+  }
+
+  .btn-copy {
+    margin-left: 0;
+  }
+
+  .social-link {
+    flex: 1 1 calc(50% - 6px);
+    justify-content: center;
   }
 }
 </style>
