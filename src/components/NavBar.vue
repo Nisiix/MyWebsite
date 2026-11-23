@@ -35,6 +35,9 @@
       </button>
     </div>
 
+    <!-- Scroll progress -->
+    <div class="scroll-progress" :style="{ transform: `scaleX(${progress})` }" aria-hidden="true"></div>
+
     <!-- Mobile Menu -->
     <transition name="slide-down">
       <div v-if="store.isNavOpen" class="mobile-menu">
@@ -54,11 +57,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useIndexStore } from '@/stores/index'
 
 const store = useIndexStore()
 const isScrolled = ref(false)
+const progress = ref(0)
 
 const navLinks = [
   { name: 'Home', path: '/', icon: 'pi pi-home' },
@@ -66,11 +71,20 @@ const navLinks = [
   { name: 'Progetti', path: '/progetti', icon: 'pi pi-folder-open' }
 ]
 
+// Reset the progress bar after a page change
+const route = useRoute()
+watch(() => route.path, () => requestAnimationFrame(handleScroll))
+
 function handleScroll() {
   isScrolled.value = window.scrollY > 40
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  progress.value = max > 0 ? Math.min(window.scrollY / max, 1) : 0
 }
 
-onMounted(() => window.addEventListener('scroll', handleScroll))
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
+})
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
@@ -175,16 +189,39 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   background: var(--gold-subtle);
 }
 
-.nav-link.active::after {
+.nav-link::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
   width: 20px;
   height: 2px;
+  margin-left: -10px;
   background: var(--gold);
   border-radius: 1px;
+  transform: scaleX(0);
+  transition: transform 0.35s var(--ease-bounce);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(0.5);
+}
+
+.nav-link.active::after {
+  transform: scaleX(1);
+}
+
+/* Scroll progress */
+.scroll-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
+  box-shadow: 0 0 10px var(--gold-glow);
+  transform-origin: left;
+  pointer-events: none;
 }
 
 /* Hamburger */
@@ -236,6 +273,22 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   font-weight: 500;
   border-radius: var(--radius-sm);
   transition: all 0.3s;
+}
+
+.mobile-menu .mobile-link {
+  animation: mobileLinkIn 0.4s var(--ease-smooth) both;
+}
+
+.mobile-menu .mobile-link:nth-child(2) { animation-delay: 0.05s; }
+.mobile-menu .mobile-link:nth-child(3) { animation-delay: 0.1s; }
+
+@keyframes mobileLinkIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.mobile-link.router-link-exact-active {
+  color: var(--gold);
 }
 
 .mobile-link:hover {

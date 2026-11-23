@@ -305,3 +305,93 @@ button {
     padding: 24px;
   }
 }
+
+/* ============================================
+   Motion & polish
+   ============================================ */
+
+/* ---------- Scroll reveal (v-reveal) ---------- */
+/* The directive drops .reveal once the entrance is over, so cards get
+   their normal hover transitions back. */
+.reveal {
+  transition:
+    opacity 0.7s var(--ease-smooth) var(--reveal-delay, 0ms),
+    transform 0.7s var(--ease-smooth) var(--reveal-delay, 0ms);
+}
+
+.reveal:not(.is-revealed) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* ---------- Card spotlight ---------- */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 0%),
+    rgba(212, 175, 55, 0.09),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-smooth);
+  pointer-events: none;
+}
+
+.glass-card:hover::after {
+  opacity: 1;
+}
+
+/* ---------- Button sheen ---------- */
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+
+.btn-gold:hover::after {
+  transform: translateX(120%);
+  transition: transform 0.7s var(--ease-smooth);
+}
+
+.btn-gold:active,
+.btn-outline:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ---------- Keyboard focus ---------- */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal:not(.is-revealed) {
+    opacity: 1;
+    transform: none;
+  }
+}

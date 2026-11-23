@@ -28,7 +28,7 @@
           :key="catIndex"
           class="skill-category"
         >
-          <div class="category-header">
+          <div class="category-header" v-reveal>
             <div class="category-icon-wrapper">
               <i :class="category.icon"></i>
             </div>
@@ -40,6 +40,7 @@
               v-for="(skill, skillIndex) in category.items"
               :key="skillIndex"
               class="skill-card glass-card"
+              v-reveal="skillIndex"
             >
               <div class="skill-top">
                 <h3 class="skill-name">{{ skill.name }}</h3>
@@ -49,7 +50,7 @@
               <div class="skill-bar-track">
                 <div
                   class="skill-bar-fill"
-                  :style="{ width: skill.level + '%' }"
+                  :style="{ '--level': skill.level + '%' }"
                 ></div>
               </div>
 
@@ -59,7 +60,7 @@
         </div>
 
         <!-- Specialization -->
-        <div class="specialization glass-card">
+        <div class="specialization glass-card" v-reveal>
           <div class="spec-icon">
             <i class="pi pi-star-fill"></i>
           </div>
@@ -77,7 +78,7 @@
         </div>
 
         <!-- Tech stack badges -->
-        <div class="tech-stack">
+        <div class="tech-stack" v-reveal>
           <h3 class="tech-stack-title">Stack Tecnologico Completo</h3>
           <div class="tech-badges">
             <span class="tech-badge" v-for="tech in techStack" :key="tech">{{ tech }}</span>
@@ -220,8 +221,14 @@ const techStack = ref([
   height: 100%;
   background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
   border-radius: 3px;
-  transition: width 1.5s var(--ease-smooth);
+  width: 0;
+  transition: width 1.4s var(--ease-smooth) calc(var(--reveal-delay, 0ms) + 250ms);
   position: relative;
+}
+
+/* Bars fill up when their card scrolls into view */
+.is-revealed .skill-bar-fill {
+  width: var(--level);
 }
 
 .skill-bar-fill::after {
