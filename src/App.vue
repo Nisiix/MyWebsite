@@ -1,5 +1,6 @@
 <template>
-  <div class="app-wrapper dark-mode">
+  <ScrollBackground />
+  <div class="app-wrapper">
     <NavBar />
     <main class="main-content">
       <RouterView v-slot="{ Component }">
@@ -15,10 +16,13 @@
 <script setup>
 import NavBar from '@/components/NavBar.vue'
 import FooterBar from '@/components/FooterBar.vue'
+import ScrollBackground from '@/components/ScrollBackground.vue'
 </script>
 
 <style scoped>
 .app-wrapper {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

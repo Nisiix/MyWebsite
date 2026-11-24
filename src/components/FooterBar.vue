@@ -20,7 +20,7 @@ const currentYear = new Date().getFullYear()
   position: relative;
   padding: 40px 0;
   border-top: 1px solid var(--border-subtle);
-  background: var(--bg-surface);
+  background: rgba(15, 15, 15, 0.85);
 }
 
 .footer-glow {

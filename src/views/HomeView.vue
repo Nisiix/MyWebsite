@@ -1,11 +1,7 @@
 <template>
   <div class="home-page">
     <!-- ============ HERO ============ -->
-    <section class="hero" id="hero-section" @pointermove="trackHero">
-      <div class="hero-bg-grid"></div>
-      <div class="hero-bg-grid hero-bg-grid-lit" aria-hidden="true"></div>
-      <div class="hero-orb hero-orb-1"></div>
-      <div class="hero-orb hero-orb-2"></div>
+    <section class="hero" id="hero-section">
 
       <div class="container hero-content">
         <div class="hero-badge fade-in">
@@ -164,13 +160,6 @@ async function copyEmail() {
   copiedTimer = setTimeout(() => (copied.value = false), 2000)
 }
 
-// Lights up the background grid around the pointer
-const trackHero = (e) => {
-  const r = e.currentTarget.getBoundingClientRect()
-  e.currentTarget.style.setProperty('--hx', `${e.clientX - r.left}px`)
-  e.currentTarget.style.setProperty('--hy', `${e.clientY - r.top}px`)
-}
-
 const scrollToAbout = () => {
   const el = document.getElementById('about-me')
   if (el) el.scrollIntoView({ behavior: 'smooth' })
@@ -197,71 +186,6 @@ const hobbies = computed(() =>
   justify-content: center;
   overflow: hidden;
   padding: 50px 0 60px;
-}
-
-.hero-bg-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
-}
-
-.hero-bg-grid-lit {
-  background-image:
-    linear-gradient(rgba(212, 175, 55, 0.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.22) 1px, transparent 1px);
-  mask-image: radial-gradient(260px circle at var(--hx, 50%) var(--hy, 45%), black, transparent 70%);
-  -webkit-mask-image: radial-gradient(260px circle at var(--hx, 50%) var(--hy, 45%), black, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.6s var(--ease-smooth);
-  pointer-events: none;
-}
-
-.hero:hover .hero-bg-grid-lit {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .hero-bg-grid-lit {
-    opacity: 0.45;
-  }
-}
-
-.hero-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-.hero-orb-1 {
-  width: 400px;
-  height: 400px;
-  background: var(--gold);
-  top: 10%;
-  right: -5%;
-  opacity: 0.08;
-  animation: float 8s ease-in-out infinite;
-}
-
-.hero-orb-2 {
-  width: 300px;
-  height: 300px;
-  background: var(--gold-dark);
-  bottom: 10%;
-  left: -5%;
-  opacity: 0.06;
-  animation: float 10s ease-in-out infinite reverse;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-30px) scale(1.05); }
 }
 
 .hero-content {
@@ -403,7 +327,7 @@ const hobbies = computed(() =>
 
 /* ============ ACTIVITIES ============ */
 .activities-section {
-  background: var(--bg-secondary);
+  background: rgba(17, 17, 17, 0.55);
 }
 
 .activities-grid {
@@ -495,7 +419,7 @@ const hobbies = computed(() =>
 
 /* ============ CONTATTI ============ */
 .contacts-section {
-  background: var(--bg-secondary);
+  background: rgba(17, 17, 17, 0.55);
 }
 
 .contact-card {
@@ -585,7 +509,6 @@ const hobbies = computed(() =>
     text-align: center;
     padding: 24px;
   }
-
 
   .social-link {
     flex: 1 1 calc(50% - 6px);
