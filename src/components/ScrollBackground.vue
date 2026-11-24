@@ -52,9 +52,9 @@ const GLYPHS = {
   // un giro in senso antiorario partendo da in alto a destra
   0: { w: 3, path: [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [2, 3], [2, 2], [2, 1]] }
 }
-const BLOCK_STEP = 55 // ms tra un blocco e il successivo
-const LETTER_PAUSE = 160 // ms di pausa in più tra una lettera e l'altra
-const WORD_DELAY = 250 // ms prima del primo blocco
+const BLOCK_STEP = 25 // ms tra un blocco e il successivo
+const LETTER_PAUSE = 70 // ms di pausa in più tra una lettera e l'altra
+const WORD_DELAY = 150 // ms prima del primo blocco
 
 // Celle di una parola: [col, row, ritardo in ms] relative all'angolo in alto a sinistra
 const wordCache = new Map()
@@ -78,7 +78,7 @@ function buildWord(word) {
   wordCache.set(word, built)
   return built
 }
-const WORD_EASE = 0.13 // i blocchi della scritta salgono un po' più rapidi
+const WORD_EASE = 0.2 // i blocchi della scritta salgono un po' più rapidi
 const WORD_H = 5 // righe di ogni lettera
 const WORD_RAISE = 1 // righe di cui la scritta sta più in alto rispetto al centro dello spazio vuoto
 
