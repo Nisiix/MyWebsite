@@ -21,7 +21,8 @@ export const messages = {
       home: 'Nisiix Dev, sviluppatore software: gestionali su misura, tool e template per piattaforme gestionali, interfacce web moderne con Vue.js.',
       curriculum: 'Curriculum di Nisiix Dev: competenze in Visual Basic 6, C#, JavaScript, Vue.js, Express.js e Java. Scaricabile in PDF.',
       projects: 'Progetti di Nisiix Dev: Todo Doto, app desktop per gestire roadmap di progetto, e Tradermon, gioco educativo sugli investimenti.',
-      notFound: 'La pagina cercata non esiste.'
+      notFound: 'La pagina che cerchi non esiste.',
+      ogImageAlt: 'NISIIX scritto con blocchi 3D dorati su una griglia scura'
     },
     titles: {
       home: 'Home — Nisiix Dev',
@@ -43,10 +44,10 @@ export const messages = {
       aboutTitle: 'Chi sono',
       aboutSubtitle: 'Il mio percorso e il modo in cui affronto lo sviluppo software.',
       journeyTitle: 'Il mio percorso',
-      journeyText: "Sono uno sviluppatore software e uno sportivo con una passione per la tecnologia che nasce fin dall'adolescenza, periodo nel quale mi interessavo principalmente all'uso del PC, all'esplorazione delle nuove tecnologie e ai videogiochi, per poi passare all'assemblaggio dei primi PC, e successivamente iniziare a scrivere le mie prime righe di codice. Nel corso della mia carriera oramai decennale, ho utilizzato principalmente e in modo approfondito <strong>Visual Basic 6</strong> e <strong>Microsoft Visual C#</strong> per lo sviluppo di applicazioni gestionali desktop e soluzioni enterprise. Successivamente ho ampliato le mie competenze implementando parti di progetti già avviati in <strong>Vue.js</strong> utilizzando JavaScript e in <strong>Netbeans</strong> utilizzando Java, contribuendo allo sviluppo di moduli web e backend.",
+      journeyText: "Sono uno sviluppatore software e uno sportivo con una passione per la tecnologia che nasce fin dall'adolescenza, quando mi interessavo soprattutto all'uso del PC, alla scoperta delle nuove tecnologie e ai videogiochi, per poi passare all'assemblaggio dei primi PC e, in seguito, alle mie prime righe di codice. Nel corso della mia carriera, ormai decennale, ho utilizzato principalmente e in modo approfondito <strong>Visual Basic 6</strong> e <strong>Microsoft Visual C#</strong> per lo sviluppo di applicazioni gestionali desktop e soluzioni enterprise. Successivamente ho ampliato le mie competenze implementando parti di progetti già avviati in <strong>Vue.js</strong> utilizzando JavaScript e in <strong>Netbeans</strong> utilizzando Java, contribuendo allo sviluppo di moduli web e backend.",
       philosophyTitle: 'La mia filosofia',
-      philosophyText1: 'Il mio approccio allo sviluppo è guidato dalla semplificazione del software, che deve risultare facile da capire, facile da modificare e facile da usare. Non sono un cultore di soluzioni software troppo complesse, prediligo una soluzione semplice, con poche funzionalità ma che faccia ciò che deve fare.',
-      philosophyText2: "Credo che l'<strong>Intelligenza Artificiale</strong> sia uno strumento straordinariamente utile che può accelerare e potenziare il lavoro dello sviluppatore. L'AI aiuta ad esplorare soluzioni, automatizzare compiti ripetitivi e velocizza i primi passi di creazione di un software. Tuttavia, è fondamentale avere una <strong>solida conoscenza pregressa</strong> dello sviluppo software: senza comprendere i principi architetturali, i pattern di design e la logica di business, l'AI rimane uno strumento senza direzione che rischia di creare più danni che benefici.",
+      philosophyText1: 'Il mio approccio allo sviluppo è guidato dalla semplificazione del software, che deve risultare facile da capire, facile da modificare e facile da usare. Non amo le soluzioni software troppo complesse: preferisco una soluzione semplice, con poche funzionalità, ma che faccia esattamente ciò che deve fare.',
+      philosophyText2: "Credo che l'<strong>intelligenza artificiale</strong> sia uno strumento straordinariamente utile, capace di accelerare e potenziare il lavoro dello sviluppatore. L'IA aiuta a esplorare soluzioni, ad automatizzare i compiti ripetitivi e a velocizzare i primi passi nella creazione di un software. Tuttavia, è fondamentale avere una <strong>solida conoscenza pregressa</strong> dello sviluppo software: senza comprendere i principi architetturali, i pattern di design e la logica di business, l'IA resta uno strumento senza direzione che rischia di creare più danni che benefici.",
       activitiesTitle: 'Di cosa mi occupo',
       activitiesSubtitle: 'Le attività che occupano le mie giornate di lavoro.',
       activities: [
@@ -76,7 +77,7 @@ export const messages = {
         },
         {
           title: 'Sport',
-          description: 'Lo sport è parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. Ma sono tendenzialmente portato per lo sport in generale e mi piace praticare anche pallavolo, ping pong e sci.'
+          description: 'Lo sport è parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. In generale sono portato per tutti gli sport e mi piace praticare anche pallavolo, ping pong e sci.'
         }
       ],
       contactsTitle: 'Contatti',
@@ -144,9 +145,10 @@ export const messages = {
     },
     meta: {
       home: 'Nisiix Dev, software developer: custom business management software, tools and templates for business platforms, modern web interfaces with Vue.js.',
-      curriculum: 'Curriculum of Nisiix Dev: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Downloadable as PDF.',
+      curriculum: "Nisiix Dev's curriculum: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Available as a PDF download.",
       projects: 'Projects by Nisiix Dev: Todo Doto, a desktop app for project roadmaps, and Tradermon, an educational investing game.',
-      notFound: 'The page you are looking for does not exist.'
+      notFound: 'The page you are looking for does not exist.',
+      ogImageAlt: 'NISIIX written with golden 3D blocks on a dark grid'
     },
     titles: {
       home: 'Home — Nisiix Dev',
@@ -171,7 +173,7 @@ export const messages = {
       journeyText: 'I am a software developer and a sports lover, with a passion for technology that goes back to my teenage years. Back then I was mostly into using the PC, exploring new technologies and playing video games; then I started building my first PCs and, later on, writing my first lines of code. Over a career that now spans a decade, I have worked mainly and in depth with <strong>Visual Basic 6</strong> and <strong>Microsoft Visual C#</strong>, building desktop business applications and enterprise solutions. I later broadened my skills by working on parts of existing projects in <strong>Vue.js</strong> with JavaScript and in <strong>Netbeans</strong> with Java, contributing to web and backend modules.',
       philosophyTitle: 'My philosophy',
       philosophyText1: 'My approach to development is driven by simplicity: software should be easy to understand, easy to change and easy to use. I am not a fan of overly complex solutions; I prefer a simple one, with few features, that does exactly what it has to do.',
-      philosophyText2: 'I believe <strong>Artificial Intelligence</strong> is an extraordinarily useful tool that can speed up and strengthen a developer\'s work. AI helps explore solutions, automate repetitive tasks and get the first steps of a project done faster. However, a <strong>solid prior knowledge</strong> of software development is essential: without understanding architectural principles, design patterns and business logic, AI remains a tool without direction that risks doing more harm than good.',
+      philosophyText2: 'I believe <strong>Artificial Intelligence</strong> is an extraordinarily useful tool that can speed up and strengthen a developer\'s work. AI helps you explore solutions, automate repetitive tasks and get the first steps of a project done faster. However, a <strong>solid prior knowledge</strong> of software development is essential: without understanding architectural principles, design patterns and business logic, AI remains a tool without direction that risks doing more harm than good.',
       activitiesTitle: 'What I do',
       activitiesSubtitle: 'The work that fills my days.',
       activities: [
@@ -201,7 +203,7 @@ export const messages = {
         },
         {
           title: 'Sports',
-          description: 'Sport is a key part of my life. I regularly play football and padel, two passions that have always been with me. I am generally drawn to sport of every kind and also enjoy volleyball, table tennis and skiing.'
+          description: 'Sport is a key part of my life. I regularly play football and padel, two passions that have always been with me. I enjoy pretty much every sport, and I also like volleyball, table tennis and skiing.'
         }
       ],
       contactsTitle: 'Get in touch',

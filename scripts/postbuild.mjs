@@ -73,7 +73,7 @@ function jsonLd(page) {
       url: site,
       image: site + 'og-image.png',
       sameAs,
-      knowsAbout: ['Visual Basic 6', 'C#', '.NET', 'JavaScript', 'Vue.js', 'Express.js', 'Java', 'Business management software']
+      knowsAbout: ['Visual Basic 6', 'C#', '.NET', 'JavaScript', 'Vue.js', 'Express.js', 'Java', page.lang === 'it' ? 'Software gestionale' : 'Business management software']
     }
   ]
   if (!page.noindex) {
@@ -106,6 +106,7 @@ function render(page) {
   html = set(html, /(<meta property="og:url" content=")[^"]*(")/, page.url)
   html = set(html, /(<meta property="og:locale" content=")[^"]*(")/, OG_LOCALE[page.lang])
   html = set(html, /(<meta property="og:locale:alternate" content=")[^"]*(")/, OG_LOCALE[page.lang === 'it' ? 'en' : 'it'])
+  html = set(html, /(<meta property="og:image:alt" content=")[^"]*(")/, messages[page.lang].meta.ogImageAlt)
   html = set(html, /(<link rel="canonical" href=")[^"]*(")/, page.url)
   for (const lang of LANGS) html = set(html, new RegExp(`(<link rel="alternate" hreflang="${lang}" href=")[^"]*(")`), urlFor(lang, bare))
   html = set(html, /(<link rel="alternate" hreflang="x-default" href=")[^"]*(")/, urlFor(LANGS[0], bare))
