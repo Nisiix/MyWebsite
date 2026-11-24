@@ -10,32 +10,29 @@
       <div class="container hero-content">
         <div class="hero-badge fade-in">
           <i class="pi pi-code"></i>
-          <span>Sviluppatore software</span>
+          <span>{{ $t('home.badge') }}</span>
         </div>
         <h1 class="hero-title fade-in fade-in-delay-1">
-          Ciao, sono<br>
+          {{ $t('home.hello') }}<br>
           <span class="gold-gradient">Nisiix Dev</span>
         </h1>
-        <p class="hero-subtitle fade-in fade-in-delay-2">
-          Sviluppatore software specializzato in soluzioni gestionali,
-          strumenti digitali e interfacce moderne che fanno la differenza.
-        </p>
+        <p class="hero-subtitle fade-in fade-in-delay-2">{{ $t('home.subtitle') }}</p>
         <div class="hero-actions fade-in fade-in-delay-3">
           <router-link to="/progetti" class="btn-gold">
             <i class="pi pi-folder-open"></i>
-            Esplora i progetti
+            {{ $t('home.ctaProjects') }}
           </router-link>
           <router-link to="/curriculum" class="btn-outline">
             <i class="pi pi-file"></i>
-            Il mio curriculum
+            {{ $t('home.ctaCurriculum') }}
           </router-link>
         </div>
       </div>
     </section>
 
     <!-- ============ SCROLL INDICATOR ============ -->
-    <button type="button" class="scroll-indicator" @click="scrollToAbout" aria-label="Scorri alla sezione successiva">
-      <span class="scroll-label">Scorri</span>
+    <button type="button" class="scroll-indicator" @click="scrollToAbout" :aria-label="$t('home.scrollLabel')">
+      <span class="scroll-label">{{ $t('home.scroll') }}</span>
       <span class="scroll-chevrons" aria-hidden="true">
         <i class="pi pi-chevron-down chevron chevron-1"></i>
         <i class="pi pi-chevron-down chevron chevron-2"></i>
@@ -46,8 +43,8 @@
     <section class="section about-section" id="about-me">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Chi sono</h2>
-          <p class="section-subtitle" v-reveal="1">Il mio percorso e il modo in cui affronto lo sviluppo software.</p>
+          <h2 class="section-title" v-reveal>{{ $t('home.aboutTitle') }}</h2>
+          <p class="section-subtitle" v-reveal="1">{{ $t('home.aboutSubtitle') }}</p>
         </div>
 
         <div class="about-grid">
@@ -55,39 +52,17 @@
             <div class="about-icon-wrapper">
               <i class="pi pi-user"></i>
             </div>
-            <h3 class="about-card-title">Il mio percorso</h3>
-            <p class="about-card-text">
-              Sono uno sviluppatore software e uno sportivo con una passione per la tecnologia che nasce
-              fin dall'adolescenza, periodo nel quale mi interessavo principalmente all'uso del PC, all'esplorazione delle nuove tecnologie
-              e ai videogiochi, per poi passare all'assemblaggio dei primi PC, e successivamente iniziare a scrivere
-              le mie prime righe di codice. Nel corso della mia carriera oramai decennale, ho utilizzato principalmente
-              e in modo approfondito <strong>Visual Basic 6</strong> e <strong>Microsoft Visual C#</strong>
-              per lo sviluppo di applicazioni gestionali desktop e soluzioni enterprise.
-              Successivamente ho ampliato le mie competenze implementando parti di progetti già avviati
-              in <strong>Vue.js</strong> utilizzando JavaScript e in <strong>Netbeans</strong> utilizzando
-              Java, contribuendo allo sviluppo di moduli web e backend.
-            </p>
+            <h3 class="about-card-title">{{ $t('home.journeyTitle') }}</h3>
+            <p class="about-card-text" v-html="$t('home.journeyText')"></p>
           </div>
 
           <div class="about-card glass-card" v-reveal="2">
             <div class="about-icon-wrapper">
               <i class="pi pi-compass"></i>
             </div>
-            <h3 class="about-card-title">La mia filosofia</h3>
-            <p class="about-card-text">
-              Il mio approccio allo sviluppo è guidato dalla semplificazione del software, che deve
-              risultare facile da capire, facile da modificare e facile da usare. Non sono un cultore
-              di soluzioni software troppo complesse, prediligo una soluzione semplice, con poche funzionalità ma 
-              che faccia ciò che deve fare. 
-            </p>
-            <p class="about-card-text">
-              Credo che l'<strong>Intelligenza Artificiale</strong> sia uno strumento straordinariamente
-              utile che può accelerare e potenziare il lavoro dello sviluppatore. L'AI aiuta ad esplorare
-              soluzioni, automatizzare compiti ripetitivi e velocizza i primi passi di creazione di un software. Tuttavia, è
-              fondamentale avere una <strong>solida conoscenza pregressa</strong> dello sviluppo software:
-              senza comprendere i principi architetturali, i pattern di design e la logica di business,
-              l'AI rimane uno strumento senza direzione che rischia di creare più danni che benefici.
-            </p>
+            <h3 class="about-card-title">{{ $t('home.philosophyTitle') }}</h3>
+            <p class="about-card-text" v-html="$t('home.philosophyText1')"></p>
+            <p class="about-card-text" v-html="$t('home.philosophyText2')"></p>
           </div>
         </div>
       </div>
@@ -97,8 +72,8 @@
     <section class="section activities-section" id="activities">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Di cosa mi occupo</h2>
-          <p class="section-subtitle" v-reveal="1">Le attività che occupano le mie giornate di lavoro.</p>
+          <h2 class="section-title" v-reveal>{{ $t('home.activitiesTitle') }}</h2>
+          <p class="section-subtitle" v-reveal="1">{{ $t('home.activitiesSubtitle') }}</p>
         </div>
 
         <div class="activities-grid">
@@ -119,8 +94,8 @@
     <section class="section hobbies-section" id="hobbies">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Passioni</h2>
-          <p class="section-subtitle" v-reveal="1">Quando non scrivo codice, ecco cosa mi tiene impegnato.</p>
+          <h2 class="section-title" v-reveal>{{ $t('home.hobbiesTitle') }}</h2>
+          <p class="section-subtitle" v-reveal="1">{{ $t('home.hobbiesSubtitle') }}</p>
         </div>
 
         <div class="hobbies-grid">
@@ -137,8 +112,8 @@
     <section class="section contacts-section" id="contatti">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Contatti</h2>
-          <p class="section-subtitle" v-reveal="1">Hai un progetto in mente o vuoi solo fare due chiacchiere? Scrivimi.</p>
+          <h2 class="section-title" v-reveal>{{ $t('home.contactsTitle') }}</h2>
+          <p class="section-subtitle" v-reveal="1">{{ $t('home.contactsSubtitle') }}</p>
         </div>
 
         <div class="contact-card glass-card" v-reveal="2">
@@ -152,10 +127,10 @@
               class="btn-outline btn-sm btn-copy"
               :class="{ copied }"
               @click="copyEmail"
-              :aria-label="copied ? 'Email copiata' : 'Copia email'"
+              :aria-label="copied ? $t('home.copiedLabel') : $t('home.copyLabel')"
             >
               <i :class="copied ? 'pi pi-check' : 'pi pi-copy'"></i>
-              <span>{{ copied ? 'Copiata' : 'Copia' }}</span>
+              <span>{{ copied ? $t('home.copied') : $t('home.copy') }}</span>
             </button>
           </div>
 
@@ -181,6 +156,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useContattiStore } from '@/stores/contatti'
+import { t } from '@/i18n'
 
 const contatti = useContattiStore()
 const visibleSocials = computed(() => contatti.socials.filter((s) => s.url))
@@ -210,46 +186,15 @@ const scrollToAbout = () => {
   if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
-const activities = ref([
-  {
-    title: 'Sviluppo di software gestionali',
-    description: 'Progetto e sviluppo applicazioni gestionali personalizzate per aziende, dalla fase di analisi dei requisiti alla messa in produzione. Ogni soluzione è costruita su misura per ottimizzare i flussi di lavoro del cliente, integrando moduli di fatturazione, gestione magazzino e reportistica avanzata.',
-    icon: 'pi pi-briefcase'
-  },
-  {
-    title: 'Creazione di tool e template',
-    description: 'Realizzo strumenti di utilità e template riutilizzabili per accelerare lo sviluppo su piattaforme gestionali. Dai generatori di codice ai sistemi di scaffolding, ogni tool nasce dall\'esigenza concreta di ridurre i tempi di sviluppo e mantenere la coerenza tra progetti diversi.',
-    icon: 'pi pi-wrench'
-  },
-  {
-    title: 'Design UI/UX e prototipazione',
-    description: 'Progetto interfacce utente intuitive e moderne utilizzando Figma per la prototipazione (traendo occasionalmente spunto da strumenti di AI generativa) e Vue.js con framework UI come Vuetify per l\'implementazione. Credo che un\'interfaccia ben progettata sia fondamentale per l\'adozione e la soddisfazione dell\'utente finale.',
-    icon: 'pi pi-palette'
-  },
-  {
-    title: 'Migrazione e modernizzazione',
-    description: 'Supporto le aziende nella migrazione di applicazioni legacy — spesso scritte in VB6 o tecnologie datate — verso architetture moderne basate su .NET e Vue.js, preservando la logica di business consolidata e migliorando performance e manutenibilità.',
-    icon: 'pi pi-sync'
-  }
-])
+const activityIcons = ['pi pi-briefcase', 'pi pi-wrench', 'pi pi-palette', 'pi pi-sync']
+const activities = computed(() =>
+  t('home.activities').map((item, i) => ({ ...item, icon: activityIcons[i] }))
+)
 
-const hobbies = ref([
-  {
-    emoji: '🎮',
-    title: 'Videogiochi',
-    description: 'I videogiochi sono sempre stati la mia valvola di sfogo. Dai classici RPG single-player ai frenetici sparatutto, il gaming mi ha aiutato a migliorare il problem-solving e il pensiero laterale. Tra i titoli che mi hanno più segnato ci sono Call of Duty, GTA V, The Witcher 3, Red Dead Redemption 2 e molti altri.'
-  },
-  {
-    emoji: '🎵',
-    title: 'Musica',
-    description: 'La musica è la colonna sonora della mia vita. Ascolto moltissimi generi musicali — dal rock all\'elettronica, dall\'hip-hop al jazz, passando per la house e la techno. Quando posso, mi svago utilizzando la console da DJ: mixare tracce e creare mi aiuta a staccare la spina.'
-  },
-  {
-    emoji: '⚽',
-    title: 'Sport',
-    description: 'Lo sport è parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. Ma sono tendenzialmente portato per lo sport in generale e mi piace praticare anche pallavolo, ping pong e sci. '
-  }
-])
+const hobbyEmojis = ['🎮', '🎵', '⚽']
+const hobbies = computed(() =>
+  t('home.hobbies').map((item, i) => ({ ...item, emoji: hobbyEmojis[i] }))
+)
 </script>
 
 <style scoped>

@@ -6,16 +6,12 @@
         <div class="curriculum-hero-content fade-in">
           <div class="hero-badge">
             <i class="pi pi-file"></i>
-            <span>Competenze tecniche</span>
+            <span>{{ $t('curriculum.badge') }}</span>
           </div>
           <h1 class="page-title">
-            Il mio <span class="gold-gradient">curriculum</span>
+            {{ $t('curriculum.titleStart') }} <span class="gold-gradient">{{ $t('curriculum.titleAccent') }}</span>
           </h1>
-          <p class="page-subtitle">
-            Linguaggi, strumenti e piattaforme che ho padroneggiato nel corso della mia carriera.
-            Principalmente sviluppo di software gestionali, tools e template per piattaforme gestionali, in secondo
-            luogo sviluppo di siti web e web application a scopo ricreativo, personale e di apprendimento.
-          </p>
+          <p class="page-subtitle">{{ $t('curriculum.subtitle') }}</p>
         </div>
       </div>
     </section>
@@ -32,7 +28,7 @@
             <div class="category-icon-wrapper">
               <i :class="category.icon"></i>
             </div>
-            <h2 class="category-title">{{ category.category }}</h2>
+            <h2 class="category-title">{{ $tr(category.category) }}</h2>
           </div>
 
           <div class="skills-list">
@@ -54,7 +50,7 @@
                 ></div>
               </div>
 
-              <p class="skill-description">{{ skill.description }}</p>
+              <p class="skill-description">{{ $tr(skill.description) }}</p>
             </div>
           </div>
         </div>
@@ -65,21 +61,14 @@
             <i class="pi pi-star-fill"></i>
           </div>
           <div class="spec-content">
-            <h3 class="spec-title">Area di specializzazione</h3>
-            <p class="spec-text">
-              La mia principale area di competenza è lo <strong class="gold-text">sviluppo di software gestionali</strong>,
-              dalla progettazione architetturale all'implementazione completa. Creo <strong class="gold-text">tools</strong>
-              e <strong class="gold-text">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo
-              e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata
-              con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di gestire progetti di
-              migrazione e modernizzazione con una comprensione completa dello stack tecnologico.
-            </p>
+            <h3 class="spec-title">{{ $t('curriculum.specTitle') }}</h3>
+            <p class="spec-text" v-html="$t('curriculum.specText')"></p>
           </div>
         </div>
 
         <!-- Tech stack badges -->
         <div class="tech-stack" v-reveal>
-          <h3 class="tech-stack-title">Stack tecnologico completo</h3>
+          <h3 class="tech-stack-title">{{ $t('curriculum.stackTitle') }}</h3>
           <div class="tech-badges">
             <span class="tech-badge" v-for="tech in techStack" :key="tech">{{ tech }}</span>
           </div>

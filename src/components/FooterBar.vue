@@ -3,9 +3,9 @@
     <div class="footer-glow"></div>
     <div class="container footer-inner">
       <p class="footer-copy">
-        &copy; {{ currentYear }} Nisiix Dev · Fatto con
-        <i class="pi pi-heart-fill" style="color: var(--gold); font-size: 0.8rem;" aria-label="passione"></i>
-        e codice
+        &copy; {{ currentYear }} Nisiix Dev · {{ $t('footer.madeWith') }}
+        <i class="pi pi-heart-fill" style="color: var(--gold); font-size: 0.8rem;" :aria-label="$t('footer.heart')"></i>
+        {{ $t('footer.andCode') }}
       </p>
     </div>
   </footer>

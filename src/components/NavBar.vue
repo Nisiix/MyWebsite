@@ -18,9 +18,12 @@
           @click="onLinkClick(link)"
         >
           <i :class="link.icon"></i>
-          <span>{{ link.name }}</span>
+          <span>{{ $t(link.label) }}</span>
         </router-link>
       </nav>
+
+      <div class="nav-actions">
+        <LangSwitcher />
 
       <!-- Mobile Hamburger -->
       <button
@@ -28,12 +31,13 @@
         id="hamburger-menu"
         @click="store.toggleNav()"
         :aria-expanded="store.isNavOpen"
-        aria-label="Toggle navigation"
+        :aria-label="$t('nav.toggle')"
       >
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
         <span class="hamburger-line"></span>
       </button>
+      </div>
     </div>
 
     <!-- Scroll progress -->
@@ -50,7 +54,7 @@
           @click="onLinkClick(link)"
         >
           <i :class="link.icon"></i>
-          <span>{{ link.name }}</span>
+          <span>{{ $t(link.label) }}</span>
         </router-link>
       </div>
     </transition>
@@ -61,16 +65,17 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIndexStore } from '@/stores/index'
+import LangSwitcher from '@/components/LangSwitcher.vue'
 
 const store = useIndexStore()
 const isScrolled = ref(false)
 const progress = ref(0)
 
 const navLinks = [
-  { name: 'Home', to: { path: '/' }, icon: 'pi pi-home' },
-  { name: 'Curriculum', to: { path: '/curriculum' }, icon: 'pi pi-file' },
-  { name: 'Progetti', to: { path: '/progetti' }, icon: 'pi pi-folder-open' },
-  { name: 'Contatti', to: { path: '/', hash: '#contatti' }, icon: 'pi pi-envelope' }
+  { name: 'Home', label: 'nav.home', to: { path: '/' }, icon: 'pi pi-home' },
+  { name: 'Curriculum', label: 'nav.curriculum', to: { path: '/curriculum' }, icon: 'pi pi-file' },
+  { name: 'Progetti', label: 'nav.projects', to: { path: '/progetti' }, icon: 'pi pi-folder-open' },
+  { name: 'Contatti', label: 'nav.contacts', to: { path: '/', hash: '#contatti' }, icon: 'pi pi-envelope' }
 ]
 
 function isActive(link) {
@@ -175,6 +180,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .nav-link {
@@ -237,6 +243,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   box-shadow: 0 0 10px var(--gold-glow);
   transform-origin: left;
   pointer-events: none;
+}
+
+/* Language + hamburger */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
 }
 
 /* Hamburger */

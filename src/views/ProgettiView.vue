@@ -6,15 +6,12 @@
         <div class="progetti-hero-content fade-in">
           <div class="hero-badge">
             <i class="pi pi-folder-open"></i>
-            <span>Portfolio</span>
+            <span>{{ $t('projects.badge') }}</span>
           </div>
           <h1 class="page-title">
-            I miei <span class="gold-gradient">progetti</span>
+            {{ $t('projects.titleStart') }} <span class="gold-gradient">{{ $t('projects.titleAccent') }}</span>
           </h1>
-          <p class="page-subtitle">
-            Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea
-            alla pubblicazione. Apri una card per visitare il sito del progetto.
-          </p>
+          <p class="page-subtitle">{{ $t('projects.subtitle') }}</p>
         </div>
       </div>
     </section>
@@ -38,7 +35,7 @@
                 v-if="project.image"
                 class="preview-image"
                 :src="project.image"
-                :alt="`Anteprima della landing page di ${project.name}`"
+                :alt="$t('projects.previewAlt').replace('{name}', project.name)"
                 loading="lazy"
                 decoding="async"
                 width="1280"
@@ -54,7 +51,7 @@
             <!-- Card Content -->
             <div class="project-content">
               <h3 class="project-name">{{ project.name }}</h3>
-              <p class="project-description">{{ project.description }}</p>
+              <p class="project-description">{{ $tr(project.description) }}</p>
 
               <!-- Tags -->
               <div class="project-tags">
@@ -73,7 +70,7 @@
                 class="btn-explore"
                 :style="{ '--accent': project.color }"
               >
-                <span>Visita il sito</span>
+                <span>{{ $t('projects.visit') }}</span>
                 <i class="pi pi-external-link"></i>
               </span>
             </div>

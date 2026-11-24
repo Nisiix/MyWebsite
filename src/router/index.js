@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { watch } from 'vue'
+import { t, locale } from '@/i18n'
 import HomeView from '@/views/HomeView.vue'
 
 const router = createRouter({
@@ -8,19 +10,19 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
-      meta: { title: 'Home — Nisiix Dev' }
+      meta: { titleKey: 'titles.home' }
     },
     {
       path: '/curriculum',
       name: 'curriculum',
       component: () => import('@/views/CurriculumView.vue'),
-      meta: { title: 'Curriculum — Nisiix Dev' }
+      meta: { titleKey: 'titles.curriculum' }
     },
     {
       path: '/progetti',
       name: 'progetti',
       component: () => import('@/views/ProgettiView.vue'),
-      meta: { title: 'Progetti — Nisiix Dev' }
+      meta: { titleKey: 'titles.projects' }
     }
   ],
   scrollBehavior(to, from, savedPosition) {
@@ -35,8 +37,11 @@ const router = createRouter({
   }
 })
 
-router.beforeEach((to) => {
-  document.title = to.meta.title || 'Nisiix Dev'
-})
+function updateTitle(route) {
+  document.title = route.meta.titleKey ? t(route.meta.titleKey) : 'Nisiix Dev'
+}
+
+router.afterEach((to) => updateTitle(to))
+watch(locale, () => updateTitle(router.currentRoute.value))
 
 export default router
