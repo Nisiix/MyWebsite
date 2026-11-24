@@ -1,5 +1,5 @@
 <template>
-  <div class="curriculum-page">
+  <div ref="pageRoot" class="curriculum-page">
     <!-- Header -->
     <section class="page-hero">
       <div class="container">
@@ -77,11 +77,16 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useCurriculumStore } from '@/stores/curriculum'
 import { locale } from '@/i18n'
+import { useLetterFall } from '@/composables/useLetterFall'
 
 const store = useCurriculumStore()
+
+// "Schiocca le dita": metà delle lettere cade anche qui (vedi useLetterFall)
+const pageRoot = ref(null)
+useLetterFall(pageRoot)
 
 // CV in PDF generati durante il deploy da scripts/build-cv.mjs (cartella cv/ del sito)
 const cvUrl = (lang) => `${import.meta.env.BASE_URL}cv/NisiixDev-CV-${lang}.pdf`
@@ -112,6 +117,8 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 }
 
 .category-icon-wrapper {
+  /* compare insieme al titolo, quando le sue lettere iniziano a ruotare */
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.3, 1.3);
   width: 48px;
   height: 48px;
   display: flex;
@@ -122,6 +129,11 @@ const cvCurrent = computed(() => cvUrl(locale.value))
   border-radius: 12px;
   color: var(--gold);
   font-size: 1.2rem;
+}
+
+.category-header:has(.spin-title:not(.spin-in)) .category-icon-wrapper {
+  opacity: 0;
+  transform: scale(0.5) rotate(-90deg);
 }
 
 .category-title {

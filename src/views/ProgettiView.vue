@@ -1,5 +1,5 @@
 <template>
-  <div class="progetti-page">
+  <div ref="pageRoot" class="progetti-page">
     <!-- Header -->
     <section class="page-hero">
       <div class="container">
@@ -102,8 +102,13 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useProgettiStore } from '@/stores/progetti'
+import { useLetterFall } from '@/composables/useLetterFall'
 
 const store = useProgettiStore()
+
+// "Schiocca le dita": metà delle lettere cade anche qui (vedi useLetterFall)
+const pageRoot = ref(null)
+useLetterFall(pageRoot)
 
 // Tecnologie usate nei progetti, in ordine alfabetico, per i filtri
 const technologies = computed(() =>

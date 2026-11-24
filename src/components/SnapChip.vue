@@ -72,7 +72,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { t } from '@/i18n'
-import { setSnap, snapReady } from '@/stores/snap'
+import { snap, setSnap, snapReady } from '@/stores/snap'
 import InfinitySwipe from './avengers-swipe/InfinitySwipe.vue'
 import ArcSwipe from './avengers-swipe/ArcSwipe.vue'
 
@@ -95,7 +95,8 @@ const labels = computed(() => ({
 // la carta gira sempre di mezzo giro: la faccia visibile è turns % 2,
 // e il contenuto della faccia nascosta viene scelto prima di girarla
 const turns = ref(0)
-const faces = ref(['chip', 'chip'])
+// tornando in home con lo schiocco ancora attivo si riparte da "Sacrifica Iron Man"
+const faces = ref([snap.value.mode === 'snapped' ? 'sacrifice' : 'chip', 'chip'])
 const swipes = []
 const root = ref(null)
 const sizer = ref(null)
@@ -238,7 +239,7 @@ onUnmounted(() => {
   clearTimeout(coolTimer)
   clearTimeout(phaseTimer)
   clearTimeout(fallTimer)
-  setSnap('normal', true)
+  // lo schiocco resta attivo anche cambiando pagina: si annulla solo con "Sacrifica Iron Man"
 })
 </script>
 

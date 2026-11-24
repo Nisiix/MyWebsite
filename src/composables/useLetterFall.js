@@ -1,4 +1,4 @@
-// "Schiocca le dita" sui testi della home: esattamente metà delle lettere, scelte a caso,
+// "Schiocca le dita" sui testi di una pagina (home, Curriculum, Progetti): esattamente metà delle lettere, scelte a caso,
 // cadono verso il basso e spariscono man mano che i testi entrano nello schermo.
 // Con "Sacrifica Iron Man" risalgono dal basso e tornano al loro posto nella parola.
 //
@@ -6,7 +6,7 @@
 // lo spazio occupato non cambia (niente salti di layout) e gli screen reader leggono
 // sempre il testo intero. Alla fine i nodi di testo originali vengono rimessi al loro
 // posto, così Vue continua ad aggiornarli come prima.
-import { watch, nextTick, onBeforeUnmount } from 'vue'
+import { watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { snap } from '@/stores/snap'
 import { locale } from '@/i18n'
 
@@ -206,6 +206,12 @@ export function useLetterFall(rootRef) {
     },
     { flush: 'pre' }
   )
+
+  // si arriva su una pagina con lo schiocco già attivo (Curriculum, Progetti, o di nuovo
+  // la home): anche qui metà delle lettere cade man mano che si scorre
+  onMounted(() => {
+    if (snap.value.mode === 'snapped') nextTick(start)
+  })
 
   onBeforeUnmount(restore)
 
