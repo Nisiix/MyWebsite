@@ -54,10 +54,6 @@ export const messages = {
           description: "Realizzo strumenti di utilità e template riutilizzabili per accelerare lo sviluppo su piattaforme gestionali. Dai generatori di codice ai sistemi di scaffolding, ogni tool nasce dall'esigenza concreta di ridurre i tempi di sviluppo e mantenere la coerenza tra progetti diversi."
         },
         {
-          title: 'Design UI/UX e prototipazione',
-          description: "Progetto interfacce utente intuitive e moderne utilizzando Figma per la prototipazione (traendo occasionalmente spunto da strumenti di AI generativa) e Vue.js con framework UI come Vuetify per l'implementazione. Credo che un'interfaccia ben progettata sia fondamentale per l'adozione e la soddisfazione dell'utente finale."
-        },
-        {
           title: 'Migrazione e modernizzazione',
           description: 'Supporto le aziende nella migrazione di applicazioni legacy, spesso scritte in VB6 o tecnologie datate, verso architetture moderne basate su .NET e Vue.js, preservando la logica di business consolidata e migliorando performance e manutenibilità.'
         }
@@ -176,10 +172,6 @@ export const messages = {
         {
           title: 'Tools and templates',
           description: 'I build utilities and reusable templates that speed up development on business platforms. From code generators to scaffolding systems, every tool comes from a real need to cut development time and keep different projects consistent.'
-        },
-        {
-          title: 'UI/UX design and prototyping',
-          description: 'I design intuitive, modern user interfaces using Figma for prototyping (occasionally drawing ideas from generative AI tools) and Vue.js with UI frameworks such as Vuetify for implementation. I believe a well-designed interface is key to adoption and end-user satisfaction.'
         },
         {
           title: 'Migration and modernisation',

@@ -61,20 +61,23 @@ const wordCache = new Map()
 function buildWord(word) {
   if (wordCache.has(word)) return wordCache.get(word)
   const cells = []
+  const letters = [] // per lettera: prima colonna, larghezza, istante in cui è scritta
   let w = 0
   let clock = WORD_DELAY
   for (const ch of word) {
     const g = GLYPHS[ch]
     if (!g) continue
+    const index = letters.length
     for (const [c, r] of g.path) {
-      cells.push([w + c, r, clock])
+      cells.push([w + c, r, clock, index])
       clock += BLOCK_STEP
     }
+    letters.push({ x0: w, w: g.w, written: clock })
     clock += LETTER_PAUSE
     w += g.w + 1
   }
   // fine della scrittura, con il tempo per l'ultimo blocco di salire
-  const built = { cells, width: Math.max(w - 1, 0), duration: clock + 1200 }
+  const built = { cells, letters, width: Math.max(w - 1, 0), duration: clock + 1200 }
   wordCache.set(word, built)
   return built
 }
@@ -90,7 +93,8 @@ const PALETTES = {
 
 let ctx = null
 let CELL = 60
-let wordCells = null // celle ("col:row") della scritta -> ritardo in ms, null se non siamo sulla home
+let wordCells = null // celle ("col:row") della scritta -> { delay, letter }, null se non c'è una scritta
+let wordLetters = [] // lettere sulla griglia: { col, w, top, written, spin }
 let wordName = '' // parola mostrata: NISIIX in home, 404 nella pagina non trovata
 let wordDuration = 0
 let wordStart = 0 // istante in cui è iniziata la scrittura
@@ -112,8 +116,8 @@ function hash(col, row, seed) {
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
   let word = 0
-  const delay = wordCells?.get(`${col}:${row}`)
-  if (delay !== undefined && wordElapsed >= delay) {
+  const cell = wordCells?.get(`${col}:${row}`)
+  if (cell && wordElapsed >= cell.delay) {
     const w = Math.max(0, 1 - scrollY / WORD_FADE)
     word = WORD_LIFT * w * w
   }
@@ -151,6 +155,7 @@ function measureWord() {
   const anchor = document.querySelector('[data-bg-word]')
   if (!anchor) {
     wordCells = null
+    wordLetters = []
     wordName = ''
     return
   }
@@ -165,13 +170,53 @@ function measureWord() {
   const centerY = rect.top + window.scrollY + rect.height / 2
   const top = Math.round(centerY / CELL - WORD_H / 2) - WORD_RAISE
   const left = Math.round((width / CELL - word.width) / 2)
-  wordCells = new Map(word.cells.map(([c, r, d]) => [`${left + c}:${top + r}`, d]))
+  wordCells = new Map(word.cells.map(([c, r, delay, letter]) => [`${left + c}:${top + r}`, { delay, letter }]))
+  const spins = wordLetters.map((l) => l.spin)
+  wordLetters = word.letters.map((l, i) => ({ col: left + l.x0, w: l.w, top, written: l.written, spin: spins[i] ?? null }))
 }
 
 // Prospettiva vista dall'alto: il tetto di un blocco alzato si allarga dal centro dello schermo
 function project(x, y, lift, cx, cy) {
   const k = 1 + lift
   return [cx + (x - cx) * k, cy + (y - cy) * k]
+}
+
+// ---- Rotazione delle lettere al passaggio del mouse ----
+const SPIN_MS = 1800 // durata di un giro completo: lento
+const BOX_DEPTH = 0.8 // spessore del blocco durante la rotazione, in celle
+let hoveredLetter = -1
+let lastPointerX = null
+
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+
+// Angolo attuale di una lettera (0 se ferma); a giro finito la rotazione si spegne
+function letterAngle(letter, now) {
+  const spin = letter.spin
+  if (!spin) return 0
+  const t = (now - spin.start) / SPIN_MS
+  if (t >= 1) {
+    letter.spin = null
+    return 0
+  }
+  return spin.dir * Math.PI * 2 * easeInOut(t)
+}
+
+// Il mouse entra in una lettera: quella lettera fa un giro nel verso del movimento
+function onPointerMove(e) {
+  if (e.pointerType !== 'mouse' || !wordLetters.length) return
+  const dx = lastPointerX === null ? 1 : e.clientX - lastPointerX
+  lastPointerX = e.clientX
+  const col = Math.floor(e.clientX / CELL)
+  const row = Math.floor((e.clientY + window.scrollY * PARALLAX) / CELL)
+  const index = wordLetters.findIndex(
+    (l) => col >= l.col && col < l.col + l.w && row >= l.top && row < l.top + WORD_H
+  )
+  if (index === hoveredLetter) return
+  hoveredLetter = index
+  const letter = wordLetters[index]
+  if (!letter || letter.spin || wordElapsed < letter.written || window.scrollY > WORD_FADE) return
+  letter.spin = { start: performance.now(), dir: dx < 0 ? -1 : 1 }
+  schedule()
 }
 
 function draw() {
@@ -205,6 +250,9 @@ function draw() {
   // Blocchi: calcola altezze, poi disegna dal più lontano dal centro al più vicino
   // finché la scritta non è completa bisogna continuare a disegnare
   let animating = !!wordCells && wordElapsed < wordDuration
+  const now = performance.now()
+  const angles = wordLetters.map((l) => letterAngle(l, now))
+  if (wordLetters.some((l) => l.spin)) animating = true
   const blocks = []
   const seen = new Set()
   for (let r = -1; r < rows; r++) {
@@ -225,14 +273,18 @@ function draw() {
       const x = col * CELL
       const y = offsetY + r * CELL
       const dist = Math.hypot(x + CELL / 2 - cx, y + CELL / 2 - cy)
-      blocks.push({ x, y, lift: next, dist })
+      // blocco di una lettera che sta ruotando: asse verticale al centro della lettera
+      const cell = wordCells?.get(key)
+      const angle = cell ? angles[cell.letter] : 0
+      const spin = angle ? { angle, axis: (wordLetters[cell.letter].col + wordLetters[cell.letter].w / 2) * CELL } : null
+      blocks.push({ x, y, lift: next, dist, spin })
     }
   }
   // dimentica i blocchi usciti dallo schermo
   for (const key of lifts.keys()) if (!seen.has(key)) lifts.delete(key)
 
   blocks.sort((a, b) => b.dist - a.dist)
-  for (const b of blocks) drawBlock(b, cx, cy)
+  for (const b of blocks) (b.spin ? drawSpinningBlock(b, cx, cy) : drawBlock(b, cx, cy))
 
   return animating
 }
@@ -275,6 +327,64 @@ function drawBlock({ x, y, lift }, cx, cy) {
   ctx.stroke()
 }
 
+// Blocco in rotazione: scatola 3D girata attorno all'asse verticale della lettera,
+// facce disegnate dalla più lontana alla più vicina
+function drawSpinningBlock({ x, y, lift, spin }, cx, cy) {
+  const strength = Math.min(lift / (MAX_LIFT * 0.3), 1)
+  const pal = PALETTES[theme.value]
+  const depth = CELL * BOX_DEPTH
+  const cos = Math.cos(spin.angle)
+  const sin = Math.sin(spin.angle)
+  const corners = [
+    [x, y],
+    [x + CELL, y],
+    [x + CELL, y + CELL],
+    [x, y + CELL]
+  ]
+  const point = ([px, py], z) => {
+    const dx = px - spin.axis
+    const dz = z - depth / 2
+    const xr = spin.axis + dx * cos - dz * sin
+    const zr = depth / 2 + dx * sin + dz * cos
+    // la profondità diventa altezza verso chi guarda, come per i blocchi fermi
+    const [sx, sy] = project(xr, py, (lift * zr) / depth, cx, cy)
+    return { sx, sy, z: zr }
+  }
+  const base = corners.map((c) => point(c, 0))
+  const top = corners.map((c) => point(c, depth))
+  const faces = [
+    { pts: top, roof: true },
+    { pts: [...base].reverse(), roof: true }
+  ]
+  for (let i = 0; i < 4; i++) {
+    const j = (i + 1) % 4
+    const light = i === 0 ? 0.2 : i === 3 ? 0.14 : i === 1 ? 0.09 : 0.06
+    faces.push({ pts: [base[i], base[j], top[j], top[i]], light })
+  }
+  for (const f of faces) f.z = f.pts.reduce((sum, p) => sum + p.z, 0) / 4
+  faces.sort((a, b) => a.z - b.z)
+
+  ctx.lineWidth = 1
+  for (const f of faces) {
+    ctx.beginPath()
+    ctx.moveTo(f.pts[0].sx, f.pts[0].sy)
+    for (let i = 1; i < 4; i++) ctx.lineTo(f.pts[i].sx, f.pts[i].sy)
+    ctx.closePath()
+    if (f.roof) {
+      ctx.fillStyle = `rgba(${pal.roof}, ${0.96 * strength})`
+      ctx.fill()
+      ctx.strokeStyle = `rgba(${pal.edge}, ${0.6 * strength})`
+      ctx.stroke()
+    } else {
+      // le facce laterali, ora visibili di lato, un po' più piene
+      ctx.fillStyle = `rgba(${pal.side}, ${Math.min(f.light * 2.5 * pal.sideBoost, 0.9) * strength})`
+      ctx.fill()
+      ctx.strokeStyle = `rgba(${pal.edge}, ${0.35 * strength})`
+      ctx.stroke()
+    }
+  }
+}
+
 // Disegna a ogni fotogramma solo finché qualcosa si muove
 function tick() {
   frame = 0
@@ -299,6 +409,7 @@ onMounted(() => {
   tick()
   window.addEventListener('scroll', schedule, { passive: true })
   window.addEventListener('resize', onResize, { passive: true })
+  window.addEventListener('pointermove', onPointerMove, { passive: true })
   // l'altezza della pagina cambia cambiando pagina o lingua
   resizeObserver = new ResizeObserver(() => {
     maxScroll = Math.max(document.documentElement.scrollHeight - height, 1)
@@ -328,6 +439,7 @@ onUnmounted(() => {
   cancelAnimationFrame(frame)
   window.removeEventListener('scroll', schedule)
   window.removeEventListener('resize', onResize)
+  window.removeEventListener('pointermove', onPointerMove)
   resizeObserver?.disconnect()
 })
 </script>

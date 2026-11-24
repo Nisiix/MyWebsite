@@ -167,7 +167,7 @@ const scrollToAbout = () => {
   if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
-const activityIcons = ['pi pi-briefcase', 'pi pi-wrench', 'pi pi-palette', 'pi pi-sync']
+const activityIcons = ['pi pi-briefcase', 'pi pi-wrench', 'pi pi-sync']
 const activities = computed(() =>
   t('home.activities').map((item, i) => ({ ...item, icon: activityIcons[i] }))
 )
