@@ -19,6 +19,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
+import { createCritters } from './bgCritters'
 
 const canvas = ref(null)
 const route = useRoute()
@@ -192,6 +193,23 @@ let hoveredLetter = -1
 let lastPointer = null // ultima posizione del mouse nelle coordinate della griglia
 let lastFrame = 0
 
+// Personaggini che girano nella griglia della home (vedi bgCritters.js)
+const critters = createCritters()
+let critterFrame = 0
+let critterTimer = 0
+
+// Una cella è libera se non fa parte della scritta e non c'è un blocco alzato o in salita
+function isCellFree(col, row) {
+  if (wordLetters.length) {
+    // tutta l'area della scritta, con un margine di una cella, è vietata
+    const first = wordLetters[0]
+    const last = wordLetters[wordLetters.length - 1]
+    if (col >= first.col - 1 && col <= last.col + last.w && row >= first.top - 1 && row <= first.top + WORD_H) return false
+  }
+  const key = `${col}:${row}`
+  return (lifts.get(key) ?? 0) < 0.003 && targetLift(col, row, window.scrollY) === 0
+}
+
 // Avanza la rotazione di una lettera di dt secondi e restituisce l'angolo (0 se ferma)
 function stepSpin(letter, index, dt) {
   const spin = letter.spin
@@ -284,6 +302,24 @@ function draw() {
   // finché la scritta non è completa bisogna continuare a disegnare
   let animating = !!wordCells && wordElapsed < wordDuration
   const now = performance.now()
+
+  // Personaggini: camminano sul pavimento, sotto i blocchi
+  // tra un battito e l'altro (pagina ferma, nessun personaggino) passa fino a un secondo
+  const critterDt = Math.min(now - (critterFrame || now), 1200) / 1000
+  critterFrame = now
+  const view = {
+    active: route.name === 'home',
+    cols: Math.floor(width / CELL),
+    minRow: firstRow + Math.ceil(80 / CELL), // sotto la barra di navigazione
+    maxRow: firstRow + Math.floor(height / CELL) - 1,
+    cell: CELL,
+    gridScroll: scrollY * PARALLAX,
+    light: theme.value === 'light'
+  }
+  if (critters.update(critterDt, view, isCellFree)) animating = true
+  if (!view.active) critterFrame = 0
+  critters.draw(ctx, view)
+
   const dt = Math.min(now - (lastFrame || now), 50) / 1000
   lastFrame = now
   const angles = wordLetters.map((l, i) => stepSpin(l, i, dt))
@@ -456,6 +492,13 @@ onMounted(() => {
   resizeObserver.observe(document.body)
 })
 
+// In home un controllo ogni secondo fa comparire i personaggini anche a pagina ferma
+onMounted(() => {
+  critterTimer = setInterval(() => {
+    if (route.name === 'home') schedule()
+  }, 1000)
+})
+
 // nuovo tema: ridisegna con i colori giusti
 watch(theme, schedule)
 
@@ -474,6 +517,7 @@ watch(
 
 onUnmounted(() => {
   cancelAnimationFrame(frame)
+  clearInterval(critterTimer)
   window.removeEventListener('scroll', schedule)
   window.removeEventListener('resize', onResize)
   window.removeEventListener('pointermove', onPointerMove)
