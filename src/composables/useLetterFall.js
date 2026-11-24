@@ -150,26 +150,47 @@ export function useLetterFall(rootRef) {
     letters = []
   }
 
-  // risalita: dal basso, con il movimento inverso della caduta
+  // risalita: come la caduta ma al contrario. Le lettere di un testo tornano al loro posto,
+  // dal basso, quando quel testo entra nello schermo scorrendo la pagina; quando sono
+  // tornate tutte, il testo originale viene rimesso al suo posto.
   function rise() {
     observer?.disconnect()
-    observer = null
-    let longest = 0
-    for (const s of letters) {
-      if (!s.classList.contains('is-falling') && !s.classList.contains('is-gone')) continue
-      const dur = parseFloat(s.style.getPropertyValue('--fall-dur')) || 0.6
-      const delay = Math.random() * 0.4
-      s.style.setProperty('--fall-delay', `${delay}s`)
-      s.classList.remove('is-falling', 'is-gone')
-      void s.offsetWidth // riparte l'animazione
-      s.classList.add('is-rising')
-      longest = Math.max(longest, dur + delay)
+    const fallen = letters.filter((s) => s.classList.contains('is-falling') || s.classList.contains('is-gone'))
+    let left = fallen.length
+    if (!left) return restore()
+    const done = () => {
+      if (--left === 0) cleanupTimer = setTimeout(restore, 50)
     }
-    cleanupTimer = setTimeout(restore, longest * 1000 + 100)
+    const lift = (el) => {
+      for (const s of el.querySelectorAll(':scope > .fall-w > .fall-l')) {
+        if (!s.classList.contains('is-falling') && !s.classList.contains('is-gone')) continue
+        s.style.setProperty('--fall-delay', `${Math.random() * 0.6}s`)
+        s.classList.remove('is-falling', 'is-gone')
+        void s.offsetWidth // riparte l'animazione
+        s.classList.add('is-rising')
+        s.addEventListener('animationend', done, { once: true })
+      }
+    }
+    const parents = new Set(fallen.map((s) => s.parentElement.parentElement))
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          lift(e.target)
+          observer.unobserve(e.target)
+        }
+      },
+      { threshold: 0, rootMargin: '0px 0px -12% 0px' }
+    )
+    parents.forEach((p) => observer.observe(p))
   }
 
   watch(snap, ({ mode, instant }) => {
-    if (mode === 'snapped') start()
+    if (mode === 'snapped') {
+      // nuovo schiocco mentre le lettere stanno ancora risalendo: si riparte da capo
+      if (letters.length) restore()
+      start()
+    }
     else if (instant) restore()
     else rise()
   })
