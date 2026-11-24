@@ -11,7 +11,7 @@
     ref="root"
     class="snap-chip"
     :class="[{ cooling, waiting, swiping: isSlider }, phase && 'is-' + phase]"
-    :style="fallStyle"
+    :style="[fallStyle, { '--k': scale }]"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
     @pointerup="onPointerUp"
@@ -19,7 +19,7 @@
   >
     <div class="snap-inner" :style="{ transform: `rotateY(${turns * 180}deg)` }">
       <!-- faccia invisibile: dà al pulsante le misure della chip -->
-      <span class="snap-face snap-sizer" aria-hidden="true"><i class="pi pi-code"></i><span>{{ labels.chip }}</span></span>
+      <span ref="sizer" class="snap-face snap-sizer" aria-hidden="true"><i class="pi pi-code"></i><span>{{ labels.chip }}</span></span>
       <div
         v-for="i in [0, 1]"
         :key="'f' + i"
@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { t } from '@/i18n'
 import { setSnap, snapReady } from '@/stores/snap'
 import InfinitySwipe from './avengers-swipe/InfinitySwipe.vue'
@@ -77,6 +77,9 @@ import ArcSwipe from './avengers-swipe/ArcSwipe.vue'
 const COOLDOWN = 5000
 const THRESHOLD = 0.9 // quota di corsa oltre la quale il rilascio vale (come prima)
 const FALL_DELAY = 200 // ms: il lampo del gesto parte prima che il pulsante cada
+// altezza dello slider nel suo disegno (--size 46px + 2 × --pad 6px, vedi CSS): viene
+// rimpicciolito in proporzione fino all'altezza della chip, con la stessa grafica
+const SLIDER_H = 58
 
 const labels = computed(() => ({
   chip: t('home.badge'),
@@ -90,6 +93,9 @@ const turns = ref(0)
 const faces = ref(['chip', 'chip'])
 const swipes = []
 const root = ref(null)
+const sizer = ref(null)
+const scale = ref(0.72) // altezza della chip / altezza dello slider, misurata al montaggio
+let sizeObserver
 const cooling = ref(false)
 let coolTimer, phaseTimer, fallTimer
 // dopo lo schiocco il pulsante cade fuori dallo schermo come i blocchi di NISIIX,
@@ -209,7 +215,21 @@ function onFocusOut(e) {
   if (!root.value?.contains(e.relatedTarget)) backToChip()
 }
 
+// la chip cambia misura con la lingua e i font: lo slider la segue
+onMounted(() => {
+  const measure = () => {
+    const h = sizer.value?.offsetHeight
+    if (h) scale.value = h / SLIDER_H
+  }
+  measure()
+  if (typeof ResizeObserver !== 'undefined' && sizer.value) {
+    sizeObserver = new ResizeObserver(measure)
+    sizeObserver.observe(sizer.value)
+  }
+})
+
 onUnmounted(() => {
+  sizeObserver?.disconnect()
   clearTimeout(coolTimer)
   clearTimeout(phaseTimer)
   clearTimeout(fallTimer)
@@ -317,19 +337,20 @@ onUnmounted(() => {
 }
 
 /* ---- pulsanti a scorrimento (kit Avengers Swipe) ----
-   più grandi della chip: centrati sopra di lei, senza spostare il resto della pagina */
+   disegnati alla loro misura e rimpiccioliti in proporzione (--k, calcolato nello script)
+   fino a coprire esattamente la chip: stessa grafica, stessa larghezza e altezza della chip */
 .snap-face.slider {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(320px, 88vw);
+  width: calc(100% / var(--k, 0.72));
   padding: 0;
   border: 0;
   background: none;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--k, 0.72));
 }
 .snap-face.slider.back {
-  transform: translate(-50%, -50%) rotateY(180deg);
+  transform: translate(-50%, -50%) rotateY(180deg) scale(var(--k, 0.72));
 }
 .snap-face.slider :deep(.av-swipe) {
   --size: 46px;

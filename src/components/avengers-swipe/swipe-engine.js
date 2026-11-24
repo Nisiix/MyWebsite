@@ -10,8 +10,11 @@ export function mountSwipe(root, options = {}) {
   const live = root.querySelector('.av-live');
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
   let threshold = Number.isFinite(options.threshold) ? clamp(options.threshold, .5, 1) : .82;
-  let disabled = !!options.disabled, phase = 'idle', side = '', progress = 0, pointer = null, origin = 0, travel = 1, timer = 0;
+  let disabled = !!options.disabled, phase = 'idle', side = '', progress = 0, pointer = null, origin = 0, travel = 1, scale = 1, timer = 0;
   const dist = (s) => Math.max(1, track.clientWidth - handles[s].offsetWidth - 2 * handles[s].offsetTop);
+  // adattamento al sito: lo slider può essere rimpicciolito con transform: scale(), quindi il
+  // trascinamento (in pixel dello schermo) si confronta con la corsa moltiplicata per la scala
+  const scaleOf = () => { const r = track.getBoundingClientRect?.(); return r && track.offsetHeight ? r.height / track.offsetHeight : 1; };
   const paint = () => {
     root.dataset.side = side || 'none'; root.dataset.phase = phase; root.dataset.disabled = String(disabled);
     root.style.setProperty('--p', String(progress));
@@ -23,7 +26,7 @@ export function mountSwipe(root, options = {}) {
     clearTimeout(timer); const old = pointer; const handle = handles[side]; pointer = null; phase = 'idle'; side = ''; progress = 0; live.textContent = ''; paint();
     if (old !== null && handle?.hasPointerCapture(old)) handle.releasePointerCapture(old);
   };
-  const begin = (s) => { side = s; travel = dist(s); progress = 0; phase = 'drag'; paint(); };
+  const begin = (s) => { side = s; travel = dist(s); scale = scaleOf() || 1; progress = 0; phase = 'drag'; paint(); };
   const commit = () => {
     const completedSide = side; phase = 'success'; progress = 1; pointer = null; paint();
     live.textContent = options.doneText || (completedSide === 'thanos' ? 'Infinity Protocol attivato' : 'Arc Protocol attivato');
@@ -34,7 +37,7 @@ export function mountSwipe(root, options = {}) {
   const listen = (el, event, fn) => { el.addEventListener(event, fn); cleanups.push(() => el.removeEventListener(event, fn)); };
   for (const s of Object.keys(handles)) {
     const h = handles[s];
-    const update = (e) => { progress = clamp((e.clientX - origin) * (s === 'thanos' ? 1 : -1) / travel, 0, 1); paint(); };
+    const update = (e) => { progress = clamp((e.clientX - origin) * (s === 'thanos' ? 1 : -1) / (travel * scale), 0, 1); paint(); };
     listen(h, 'pointerdown', (e) => {
       if (disabled || phase !== 'idle' || !e.isPrimary || e.button !== 0) return;
       begin(s); pointer = e.pointerId; origin = e.clientX;
