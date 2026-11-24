@@ -25,6 +25,12 @@ const router = createRouter({
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
+    if (to.hash) {
+      const target = { el: to.hash, top: 90, behavior: 'smooth' }
+      // Coming from another page, wait for the page transition to finish
+      if (from.path === to.path) return target
+      return new Promise((resolve) => setTimeout(() => resolve(target), 450))
+    }
     return { top: 0, behavior: 'smooth' }
   }
 })

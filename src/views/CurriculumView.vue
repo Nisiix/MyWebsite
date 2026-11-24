@@ -1,15 +1,15 @@
 <template>
   <div class="curriculum-page">
     <!-- Header -->
-    <section class="curriculum-hero">
+    <section class="page-hero">
       <div class="container">
         <div class="curriculum-hero-content fade-in">
           <div class="hero-badge">
             <i class="pi pi-file"></i>
-            <span>Competenze Tecniche</span>
+            <span>Competenze tecniche</span>
           </div>
           <h1 class="page-title">
-            Il Mio <span class="gold-gradient">Curriculum</span>
+            Il mio <span class="gold-gradient">curriculum</span>
           </h1>
           <p class="page-subtitle">
             Linguaggi, strumenti e piattaforme che ho padroneggiato nel corso della mia carriera.
@@ -65,12 +65,12 @@
             <i class="pi pi-star-fill"></i>
           </div>
           <div class="spec-content">
-            <h3 class="spec-title">Area di Specializzazione</h3>
+            <h3 class="spec-title">Area di specializzazione</h3>
             <p class="spec-text">
               La mia principale area di competenza è lo <strong class="gold-text">sviluppo di software gestionali</strong>,
               dalla progettazione architetturale all'implementazione completa. Creo <strong class="gold-text">tools</strong>
               e <strong class="gold-text">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo
-              e garantiscono coerenza e qualità across l'intero ecosistema applicativo. L'esperienza maturata
+              e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata
               con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di gestire progetti di
               migrazione e modernizzazione con una comprensione completa dello stack tecnologico.
             </p>
@@ -79,7 +79,7 @@
 
         <!-- Tech stack badges -->
         <div class="tech-stack" v-reveal>
-          <h3 class="tech-stack-title">Stack Tecnologico Completo</h3>
+          <h3 class="tech-stack-title">Stack tecnologico completo</h3>
           <div class="tech-badges">
             <span class="tech-badge" v-for="tech in techStack" :key="tech">{{ tech }}</span>
           </div>
@@ -105,46 +105,6 @@ const techStack = ref([
 
 <style scoped>
 /* Hero */
-.curriculum-hero {
-  padding: 120px 0 60px;
-  text-align: center;
-  position: relative;
-  background:
-    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(212, 175, 55, 0.04), transparent);
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: var(--gold-subtle);
-  border: 1px solid var(--border-gold);
-  border-radius: 100px;
-  color: var(--gold);
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-bottom: 24px;
-  letter-spacing: 0.5px;
-}
-
-.page-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  font-weight: 900;
-  color: var(--text-white);
-  margin-bottom: 16px;
-  letter-spacing: -0.5px;
-}
-
-.page-subtitle {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-  max-width: 650px;
-  margin: 0 auto;
-  line-height: 1.8;
-}
-
 /* Skill Categories */
 .skill-category {
   margin-bottom: 60px;
@@ -179,7 +139,7 @@ const techStack = ref([
 
 .skills-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 500px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 500px), 1fr));
   gap: 16px;
 }
 

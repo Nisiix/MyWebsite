@@ -12,9 +12,10 @@
         <router-link
           v-for="link in navLinks"
           :key="link.name"
-          :to="link.path"
-          :class="['nav-link', { active: $route.path === link.path }]"
+          :to="link.to"
+          :class="['nav-link', { active: isActive(link) }]"
           :id="'nav-' + link.name.toLowerCase()"
+          @click="onLinkClick(link)"
         >
           <i :class="link.icon"></i>
           <span>{{ link.name }}</span>
@@ -44,9 +45,9 @@
         <router-link
           v-for="link in navLinks"
           :key="link.name"
-          :to="link.path"
-          class="mobile-link"
-          @click="store.closeNav()"
+          :to="link.to"
+          :class="['mobile-link', { active: isActive(link) }]"
+          @click="onLinkClick(link)"
         >
           <i :class="link.icon"></i>
           <span>{{ link.name }}</span>
@@ -66,10 +67,24 @@ const isScrolled = ref(false)
 const progress = ref(0)
 
 const navLinks = [
-  { name: 'Home', path: '/', icon: 'pi pi-home' },
-  { name: 'Curriculum', path: '/curriculum', icon: 'pi pi-file' },
-  { name: 'Progetti', path: '/progetti', icon: 'pi pi-folder-open' }
+  { name: 'Home', to: { path: '/' }, icon: 'pi pi-home' },
+  { name: 'Curriculum', to: { path: '/curriculum' }, icon: 'pi pi-file' },
+  { name: 'Progetti', to: { path: '/progetti' }, icon: 'pi pi-folder-open' },
+  { name: 'Contatti', to: { path: '/', hash: '#contatti' }, icon: 'pi pi-envelope' }
 ]
+
+function isActive(link) {
+  if (route.path !== link.to.path) return false
+  return (link.to.hash || '') === route.hash
+}
+
+// Clicking a hash link when the URL already has it would not scroll again
+function onLinkClick(link) {
+  store.closeNav()
+  if (link.to.hash && route.hash === link.to.hash) {
+    document.querySelector(link.to.hash)?.scrollIntoView({ behavior: 'smooth' })
+  }
+}
 
 // Reset the progress bar after a page change
 const route = useRoute()
@@ -287,7 +302,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   to { opacity: 1; transform: none; }
 }
 
-.mobile-link.router-link-exact-active {
+.mobile-link.active {
   color: var(--gold);
 }
 

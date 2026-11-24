@@ -1,7 +1,7 @@
 <template>
   <div class="progetti-page">
     <!-- Header -->
-    <section class="progetti-hero">
+    <section class="page-hero">
       <div class="container">
         <div class="progetti-hero-content fade-in">
           <div class="hero-badge">
@@ -9,11 +9,11 @@
             <span>Portfolio</span>
           </div>
           <h1 class="page-title">
-            I Miei <span class="gold-gradient">Progetti</span>
+            I miei <span class="gold-gradient">progetti</span>
           </h1>
           <p class="page-subtitle">
-            Una selezione dei progetti a cui ho lavorato, dalle piattaforme gestionali
-            ai tools di sviluppo. Ogni progetto racconta una storia di sfide e soluzioni.
+            Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea
+            alla pubblicazione. Apri una card per visitare il sito del progetto.
           </p>
         </div>
       </div>
@@ -76,10 +76,6 @@
                 <span>Visita il sito</span>
                 <i class="pi pi-external-link"></i>
               </span>
-              <button v-else class="btn-explore" :style="{ '--accent': project.color }">
-                <span>Esplora</span>
-                <i class="pi pi-arrow-right"></i>
-              </button>
             </div>
           </component>
         </div>
@@ -96,46 +92,6 @@ const store = useProgettiStore()
 
 <style scoped>
 /* Hero */
-.progetti-hero {
-  padding: 120px 0 60px;
-  text-align: center;
-  position: relative;
-  background:
-    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(212, 175, 55, 0.04), transparent);
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: var(--gold-subtle);
-  border: 1px solid var(--border-gold);
-  border-radius: 100px;
-  color: var(--gold);
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-bottom: 24px;
-  letter-spacing: 0.5px;
-}
-
-.page-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
-  font-weight: 900;
-  color: var(--text-white);
-  margin-bottom: 16px;
-  letter-spacing: -0.5px;
-}
-
-.page-subtitle {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-  max-width: 650px;
-  margin: 0 auto;
-  line-height: 1.8;
-}
-
 /* Projects Grid */
 .projects-grid {
   display: grid;
@@ -313,11 +269,12 @@ const store = useProgettiStore()
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 24px;
+  padding: 12px 28px;
   background: transparent;
   color: var(--accent, var(--gold));
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
   border: 1px solid color-mix(in srgb, var(--accent, var(--gold)) 35%, transparent);
   border-radius: var(--radius-sm);
   cursor: pointer;

@@ -10,7 +10,7 @@
       <div class="container hero-content">
         <div class="hero-badge fade-in">
           <i class="pi pi-code"></i>
-          <span>Software Developer</span>
+          <span>Sviluppatore software</span>
         </div>
         <h1 class="hero-title fade-in fade-in-delay-1">
           Ciao, sono<br>
@@ -23,31 +23,31 @@
         <div class="hero-actions fade-in fade-in-delay-3">
           <router-link to="/progetti" class="btn-gold">
             <i class="pi pi-folder-open"></i>
-            Esplora i Progetti
+            Esplora i progetti
           </router-link>
           <router-link to="/curriculum" class="btn-outline">
             <i class="pi pi-file"></i>
-            Il Mio Curriculum
+            Il mio curriculum
           </router-link>
         </div>
       </div>
     </section>
 
     <!-- ============ SCROLL INDICATOR ============ -->
-    <div class="scroll-indicator" @click="scrollToAbout">
+    <button type="button" class="scroll-indicator" @click="scrollToAbout" aria-label="Scorri alla sezione successiva">
       <span class="scroll-label">Scorri</span>
-      <div class="scroll-chevrons">
+      <span class="scroll-chevrons" aria-hidden="true">
         <i class="pi pi-chevron-down chevron chevron-1"></i>
         <i class="pi pi-chevron-down chevron chevron-2"></i>
-      </div>
-    </div>
+      </span>
+    </button>
 
     <!-- ============ ABOUT ME ============ -->
     <section class="section about-section" id="about-me">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>About Me</h2>
-          <p class="section-subtitle" v-reveal="1">Chi sono e cosa mi appassiona nel mondo dello sviluppo software.</p>
+          <h2 class="section-title" v-reveal>Chi sono</h2>
+          <p class="section-subtitle" v-reveal="1">Il mio percorso e il modo in cui affronto lo sviluppo software.</p>
         </div>
 
         <div class="about-grid">
@@ -55,7 +55,7 @@
             <div class="about-icon-wrapper">
               <i class="pi pi-user"></i>
             </div>
-            <h3 class="about-card-title">Chi Sono</h3>
+            <h3 class="about-card-title">Il mio percorso</h3>
             <p class="about-card-text">
               Sono uno sviluppatore software e uno sportivo con una passione per la tecnologia che nasce
               fin dall'adolescenza, periodo nel quale mi interessavo principalmente all'uso del PC, all'esplorazione delle nuove tecnologie
@@ -73,7 +73,7 @@
             <div class="about-icon-wrapper">
               <i class="pi pi-compass"></i>
             </div>
-            <h3 class="about-card-title">La Mia Filosofia</h3>
+            <h3 class="about-card-title">La mia filosofia</h3>
             <p class="about-card-text">
               Il mio approccio allo sviluppo è guidato dalla semplificazione del software, che deve
               risultare facile da capire, facile da modificare e facile da usare. Non sono un cultore
@@ -97,13 +97,12 @@
     <section class="section activities-section" id="activities">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Activities</h2>
-          <p class="section-subtitle" v-reveal="1">Le attività che occupano le mie giornate nel mondo tech.</p>
+          <h2 class="section-title" v-reveal>Di cosa mi occupo</h2>
+          <p class="section-subtitle" v-reveal="1">Le attività che occupano le mie giornate di lavoro.</p>
         </div>
 
         <div class="activities-grid">
           <div class="activity-item glass-card" v-for="(activity, index) in activities" :key="index" v-reveal="index">
-            <div class="activity-number">{{ String(index + 1).padStart(2, '0') }}</div>
             <div class="activity-content">
               <h3 class="activity-title">{{ activity.title }}</h3>
               <p class="activity-text">{{ activity.description }}</p>
@@ -120,7 +119,7 @@
     <section class="section hobbies-section" id="hobbies">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>Hobbies</h2>
+          <h2 class="section-title" v-reveal>Passioni</h2>
           <p class="section-subtitle" v-reveal="1">Quando non scrivo codice, ecco cosa mi tiene impegnato.</p>
         </div>
 
@@ -143,14 +142,14 @@
         </div>
 
         <div class="contact-card glass-card" v-reveal="2">
-          <div class="contact-email">
+          <div v-if="contatti.email" class="contact-email">
             <div class="about-icon-wrapper">
               <i class="pi pi-envelope"></i>
             </div>
             <a :href="'mailto:' + contatti.email" class="contact-email-link">{{ contatti.email }}</a>
             <button
               type="button"
-              class="btn-copy"
+              class="btn-outline btn-sm btn-copy"
               :class="{ copied }"
               @click="copyEmail"
               :aria-label="copied ? 'Email copiata' : 'Copia email'"
@@ -160,14 +159,14 @@
             </button>
           </div>
 
-          <div class="contact-socials">
+          <div v-if="visibleSocials.length" class="contact-socials">
             <a
               v-for="social in visibleSocials"
               :key="social.name"
               :href="social.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="social-link"
+              class="btn-outline btn-sm social-link"
             >
               <i :class="social.icon"></i>
               <span>{{ social.name }}</span>
@@ -213,22 +212,22 @@ const scrollToAbout = () => {
 
 const activities = ref([
   {
-    title: 'Sviluppo Software Gestionale',
+    title: 'Sviluppo di software gestionali',
     description: 'Progetto e sviluppo applicazioni gestionali personalizzate per aziende, dalla fase di analisi dei requisiti alla messa in produzione. Ogni soluzione è costruita su misura per ottimizzare i flussi di lavoro del cliente, integrando moduli di fatturazione, gestione magazzino e reportistica avanzata.',
     icon: 'pi pi-briefcase'
   },
   {
-    title: 'Creazione di Tool & Template',
+    title: 'Creazione di tool e template',
     description: 'Realizzo strumenti di utilità e template riutilizzabili per accelerare lo sviluppo su piattaforme gestionali. Dai generatori di codice ai sistemi di scaffolding, ogni tool nasce dall\'esigenza concreta di ridurre i tempi di sviluppo e mantenere la coerenza tra progetti diversi.',
     icon: 'pi pi-wrench'
   },
   {
-    title: 'UI/UX Design & Prototipazione',
+    title: 'Design UI/UX e prototipazione',
     description: 'Progetto interfacce utente intuitive e moderne utilizzando Figma per la prototipazione (traendo occasionalmente spunto da strumenti di AI generativa) e Vue.js con framework UI come Vuetify per l\'implementazione. Credo che un\'interfaccia ben progettata sia fondamentale per l\'adozione e la soddisfazione dell\'utente finale.',
     icon: 'pi pi-palette'
   },
   {
-    title: 'Migrazione & Modernizzazione',
+    title: 'Migrazione e modernizzazione',
     description: 'Supporto le aziende nella migrazione di applicazioni legacy — spesso scritte in VB6 o tecnologie datate — verso architetture moderne basate su .NET e Vue.js, preservando la logica di business consolidata e migliorando performance e manutenibilità.',
     icon: 'pi pi-sync'
   }
@@ -237,17 +236,17 @@ const activities = ref([
 const hobbies = ref([
   {
     emoji: '🎮',
-    title: 'Gaming',
+    title: 'Videogiochi',
     description: 'I videogiochi sono sempre stati la mia valvola di sfogo. Dai classici RPG single-player ai frenetici sparatutto, il gaming mi ha aiutato a migliorare il problem-solving e il pensiero laterale. Tra i titoli che mi hanno più segnato ci sono Call of Duty, GTA V, The Witcher 3, Red Dead Redemption 2 e molti altri.'
   },
   {
     emoji: '🎵',
-    title: 'Music',
+    title: 'Musica',
     description: 'La musica è la colonna sonora della mia vita. Ascolto moltissimi generi musicali — dal rock all\'elettronica, dall\'hip-hop al jazz, passando per la house e la techno. Quando posso, mi svago utilizzando la console da DJ: mixare tracce e creare mi aiuta a staccare la spina.'
   },
   {
     emoji: '⚽',
-    title: 'Sports',
+    title: 'Sport',
     description: 'Lo sport è parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. Ma sono tendenzialmente portato per lo sport in generale e mi piace praticare anche pallavolo, ping pong e sci. '
   }
 ])
@@ -336,23 +335,8 @@ const hobbies = ref([
   z-index: 1;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: var(--gold-subtle);
-  border: 1px solid var(--border-gold);
-  border-radius: 100px;
-  color: var(--gold);
-  font-size: 0.88rem;
-  font-weight: 600;
+.hero .hero-badge {
   margin-bottom: 28px;
-  letter-spacing: 0.5px;
-}
-
-.hero-badge i {
-  font-size: 0.8rem;
 }
 
 .hero-title .gold-gradient {
@@ -394,6 +378,7 @@ const hobbies = ref([
 /* ============ SCROLL INDICATOR ============ */
 .scroll-indicator {
   display: flex;
+  margin: 0 auto;
   flex-direction: column;
   align-items: center;
   gap: 8px;
@@ -505,21 +490,6 @@ const hobbies = ref([
   align-items: center;
   gap: 24px;
   padding: 28px 32px;
-}
-
-.activity-number {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: var(--gold);
-  opacity: 0.25;
-  min-width: 60px;
-  text-align: center;
-  transition: opacity 0.3s;
-}
-
-.activity-item:hover .activity-number {
-  opacity: 0.6;
 }
 
 .activity-content {
@@ -636,23 +606,7 @@ const hobbies = ref([
 }
 
 .btn-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
   margin-left: auto;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid var(--border-medium);
-  border-radius: 100px;
-  transition: all 0.3s var(--ease-smooth);
-}
-
-.btn-copy:hover {
-  color: var(--gold);
-  border-color: var(--border-gold);
-  background: var(--gold-subtle);
 }
 
 .btn-copy.copied {
@@ -674,34 +628,15 @@ const hobbies = ref([
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.contact-email + .contact-socials {
   padding-top: 24px;
   border-top: 1px solid var(--border-subtle);
 }
 
-.social-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-  font-weight: 500;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
-}
-
 .social-link i {
-  color: var(--gold);
-  font-size: 1.05rem;
   transition: transform 0.3s var(--ease-bounce);
-}
-
-.social-link:hover {
-  color: var(--text-white);
-  border-color: var(--border-gold);
-  transform: translateY(-2px);
 }
 
 .social-link:hover i {
@@ -718,10 +653,6 @@ const hobbies = ref([
     flex-direction: column;
     text-align: center;
     padding: 24px;
-  }
-
-  .activity-number {
-    font-size: 1.8rem;
   }
 
   .btn-copy {

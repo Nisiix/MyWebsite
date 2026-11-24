@@ -3,9 +3,9 @@
     <div class="footer-glow"></div>
     <div class="container footer-inner">
       <p class="footer-copy">
-        &copy; {{ currentYear }} Nisiix Dev — Crafted with
-        <i class="pi pi-heart-fill" style="color: var(--gold); font-size: 0.8rem;"></i>
-        and code.
+        &copy; {{ currentYear }} Nisiix Dev · Fatto con
+        <i class="pi pi-heart-fill" style="color: var(--gold); font-size: 0.8rem;" aria-label="passione"></i>
+        e codice
       </p>
     </div>
   </footer>

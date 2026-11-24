@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 export const useCurriculumStore = defineStore('curriculum', () => {
   const skills = ref([
     {
-      category: 'Desktop Development',
+      category: 'Sviluppo desktop',
       icon: 'pi pi-desktop',
       items: [
         { name: 'Visual Basic 6', level: 100, description: 'Sviluppo applicazioni gestionali legacy, migrazione e manutenzione di sistemi enterprise consolidati.' },
@@ -12,7 +12,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
       ]
     },
     {
-      category: 'Web Development — Frontend',
+      category: 'Sviluppo web (frontend)',
       icon: 'pi pi-globe',
       items: [
         { name: 'JavaScript', level: 75, description: 'ES6+, programmazione funzionale e asincrona, integrazione API REST.' },
@@ -20,7 +20,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
       ]
     },
     {
-      category: 'Web Development — Backend',
+      category: 'Sviluppo web (backend)',
       icon: 'pi pi-server',
       items: [
         { name: 'Express.js', level: 60, description: 'API RESTful, middleware personalizzati, autenticazione JWT e integrazione database.' },
@@ -28,7 +28,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
       ]
     },
     {
-      category: 'Design & Prototyping',
+      category: 'Design e prototipazione',
       icon: 'pi pi-palette',
       items: [
         { name: 'Figma', level: 60, description: 'Prototipazione UI/UX, design system, wireframing e collaborazione con team di sviluppo.' }
