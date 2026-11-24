@@ -8,10 +8,11 @@
 import { createFlyer3D } from './bgFlyer3d'
 
 const SPEED = 2.6 // celle al secondo
-const STEER = 2.6 // prontezza nel cambiare direzione (più alto = curve più strette)
+const STEER = 2.2 // prontezza nel cambiare direzione (più alto = curve più strette)
+const ACCEL = 2.4 // accelerazione massima, in velocità massime al secondo: dà inerzia al volo
 const LIFE = [12, 22] // secondi in volo prima di dirigersi verso l'uscita
 const PAUSE = [6, 14] // secondi tra un'uscita e il rientro successivo
-const HOVER = [0.3, 1.4] // secondi fermo a mezz'aria a ogni tappa
+const HOVER = [0.6, 2.2] // secondi fermo a mezz'aria a ogni tappa
 const EXIT_TIMEOUT = 15 // secondi massimi per uscire, poi sparisce sul posto
 const NAV = 80 // px della barra di navigazione in alto
 
@@ -46,7 +47,25 @@ export function createFlyer() {
     const m = view.cell
     const y = rand(NAV + m, view.height - m)
     const x = fromLeft ? -m : view.width + m
-    f = { x, y, vx: fromLeft ? 1 : -1, vy: 0, tx: x, ty: y, hover: 0, age: 0, life: rand(...LIFE), scale: 1, face: fromLeft ? 1 : -1 }
+    f = {
+      x,
+      y,
+      vx: (fromLeft ? 1 : -1) * SPEED * m * 0.6,
+      vy: 0,
+      ax: 0,
+      ay: 0,
+      tx: x,
+      ty: y,
+      hx: x,
+      hy: y,
+      hover: 0,
+      curve: 0,
+      seed: rand(0, 100),
+      age: 0,
+      life: rand(...LIFE),
+      scale: 1,
+      face: fromLeft ? 1 : -1
+    }
     pickTarget(view)
   }
 
@@ -64,6 +83,8 @@ export function createFlyer() {
       if (Math.hypot(tx - f.x, ty - f.y) > view.width * 0.25 && !crosses(f.x, f.y, tx, ty, r, m * 0.5)) break
     }
     if (best) [f.tx, f.ty] = best
+    // ogni tratto è un arco, piegato da una parte o dall'altra
+    f.curve = rand(0.25, 0.7) * (Math.random() < 0.5 ? -1 : 1)
   }
 
   // uscita: verso il bordo laterale più vicino, sopra o sotto la scritta se è in mezzo
@@ -78,6 +99,7 @@ export function createFlyer() {
     }
     f.tx = tx
     f.ty = ty
+    f.curve = 0
     f.exiting = true
   }
 
@@ -104,31 +126,71 @@ export function createFlyer() {
     if (f.age > f.life && !f.exiting) pickExit(view)
     if (f.age > f.life + EXIT_TIMEOUT) f.scale = Math.max(0, f.scale - dt / 0.35)
 
-    const speed = SPEED * view.cell
+    // a passi piccoli, così l'inerzia resta stabile anche dopo una pausa lunga
+    let left = dt
+    while (left > 0) {
+      const h = Math.min(left, 1 / 60)
+      left -= h
+      step(h, view)
+    }
+    // resta nello schermo visibile (tranne quando entra o esce dai lati)
+    f.y = Math.min(Math.max(f.y, NAV + view.cell * 0.5), view.height - view.cell * 0.5)
+    if (Math.abs(f.vx) > SPEED * view.cell * 0.15) f.face = f.vx > 0 ? 1 : -1
+    if (f.gone || f.scale <= 0) f = null
+    return true
+  }
+
+  let lastDt = 0
+
+  // Un passo di volo: si calcola la velocità desiderata e ci si arriva con accelerazione
+  // limitata, così parte, frena e curva con un po' di inerzia.
+  function step(dt, view) {
+    const cell = view.cell
+    const speed = SPEED * cell
     const dx = f.tx - f.x
     const dy = f.ty - f.y
     const dist = Math.hypot(dx, dy)
+    const t = clock + f.seed
     let wx = 0
     let wy = 0
+    let steer = STEER
     if (f.hover > 0) {
+      // sospeso a mezz'aria: ondeggia piano intorno al punto, mai fermo del tutto
       f.hover -= dt
+      const px = f.hx + Math.sin(t * 0.9) * cell * 0.22 + Math.sin(t * 2.3) * cell * 0.05
+      const py = f.hy + Math.sin(t * 1.4 + 1) * cell * 0.16 + Math.sin(t * 3.1) * cell * 0.04
+      wx = (px - f.x) * 2.5
+      wy = (py - f.y) * 2.5
+      steer = 3
       if (f.hover <= 0) pickTarget(view)
-    } else if (dist < view.cell * 0.35) {
+    } else if (dist < cell * 0.5) {
       if (f.exiting) {
         // arrivato al bordo: se è già fuori ha finito, altrimenti prosegue verso l'esterno
-        if (f.x < -view.cell || f.x > view.width + view.cell) f.gone = true
+        if (f.x < -cell || f.x > view.width + cell) f.gone = true
         else pickExit(view)
-      } else f.hover = rand(...HOVER)
+      } else {
+        f.hover = rand(...HOVER)
+        f.hx = f.x
+        f.hy = f.y
+      }
     } else {
-      // rallenta avvicinandosi alla tappa
-      const k = Math.min(1, dist / (view.cell * 1.5))
-      wx = (dx / dist) * speed * Math.max(k, 0.35)
-      wy = (dy / dist) * speed * Math.max(k, 0.35)
+      // frena dolcemente in arrivo (curva a S), parte con slancio
+      const near = Math.min(1, dist / (cell * 2.6))
+      const k = Math.max(near * near * (3 - 2 * near), 0.18)
+      // direzione piegata ad arco, più qualche sbandata lenta e irregolare
+      const wander = 0.22 * Math.sin(t * 0.83) + 0.12 * Math.sin(t * 1.97 + 2) + 0.06 * Math.sin(t * 4.1)
+      const ang = f.curve * Math.min(1, dist / (cell * 5)) + wander * (f.exiting ? 0.4 : 1)
+      const c = Math.cos(ang)
+      const s = Math.sin(ang)
+      const ux = dx / dist
+      const uy = dy / dist
+      wx = (ux * c - uy * s) * speed * k
+      wy = (ux * s + uy * c) * speed * k
     }
     // tiene le distanze dalla scritta
     const r = view.avoid
     if (r && !f.exiting) {
-      const m = view.cell * 0.9
+      const m = cell * 0.9
       const nx = Math.min(Math.max(f.x, r.x0), r.x1)
       const ny = Math.min(Math.max(f.y, r.y0), r.y1)
       const ex = f.x - nx
@@ -142,27 +204,33 @@ export function createFlyer() {
         } else wy += f.y < (r.y0 + r.y1) / 2 ? -push : push
       }
     }
-    const a = Math.min(1, STEER * dt)
-    f.vx += (wx - f.vx) * a
-    f.vy += (wy - f.vy) * a
+    let ax = (wx - f.vx) * steer
+    let ay = (wy - f.vy) * steer
+    const am = Math.hypot(ax, ay)
+    const max = ACCEL * speed
+    if (am > max) {
+      ax *= max / am
+      ay *= max / am
+    }
+    f.vx += ax * dt
+    f.vy += ay * dt
     f.x += f.vx * dt
     f.y += f.vy * dt
-    // resta nello schermo visibile (tranne quando entra o esce dai lati)
-    f.y = Math.min(Math.max(f.y, NAV + view.cell * 0.5), view.height - view.cell * 0.5)
-    if (Math.abs(f.vx) > speed * 0.15) f.face = f.vx > 0 ? 1 : -1
-    if (f.gone || f.scale <= 0) f = null
-    return true
+    // accelerazione addolcita, usata per la posa del corpo e le fiammelle
+    const sa = Math.min(1, dt * 8)
+    f.ax += (ax - f.ax) * sa
+    f.ay += (ay - f.ay) * sa
   }
-
-  let lastDt = 0
 
   function draw(ctx, view) {
     if (!f || f.scale <= 0) {
       body.hide()
       return
     }
-    const thrust = Math.min(1, Math.hypot(f.vx, f.vy) / (SPEED * view.cell))
-    const bob = Math.sin(clock * 3.2) * view.cell * 0.03
+    const sp = SPEED * view.cell
+    // spinta: un po' per restare in aria, di più quando accelera
+    const thrust = Math.min(1, 0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp))
+    const bob = (Math.sin(clock * 2.1 + f.seed) + 0.4 * Math.sin(clock * 3.7)) * view.cell * 0.02
     const points = body.draw(f, f.x, f.y + bob, view.cell, clock, thrust, view.light, lastDt, true)
     drawFlames(ctx, f, view.cell, clock, thrust, view.light, points)
   }

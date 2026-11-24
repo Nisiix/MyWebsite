@@ -24,10 +24,10 @@ export function createFlyer3D() {
   const base = new Map()
   let glow = []
   let size = 0
-  let yaw = 0
   let disposed = false
   const pointer = { x: 0, y: 0 }
   const look = { x: 0, y: 0 }
+  let current = null
 
   function mount(el) {
     host = el
@@ -69,7 +69,7 @@ export function createFlyer3D() {
       scene.environment = env.texture
       room.dispose()
       pmrem.dispose()
-      scene.add(new THREE.HemisphereLight(0xe4f5ff, 0x48273c, 1.6))
+      scene.add(new THREE.HemisphereLight(0xe4f5ff, 0x48273c, 1.1))
       const light = (color, intensity, pos) => {
         const l = new THREE.DirectionalLight(color, intensity)
         l.position.set(...pos)
@@ -103,6 +103,17 @@ export function createFlyer3D() {
         nodes[name] = node
         base.set(node, node.rotation.clone())
       }
+      // armatura più rossa del GLB originale, che tende al rosa
+      const reds = { 'Crimson enamel': 0xc8101c, 'Scarlet panel': 0xe01b26, 'Deep red': 0x7e0912 }
+      model.traverse((o) => {
+        if (!o.isMesh) return
+        for (const m of [].concat(o.material)) {
+          if (reds[m.name] !== undefined) {
+            m.color.setHex(reds[m.name])
+            m.roughness = Math.min(m.roughness ?? 0.5, 0.38)
+          }
+        }
+      })
       const mats = new Set()
       model.traverse((o) => {
         if (o.isMesh) for (const m of [].concat(o.material)) if (m.emissive && m.emissive.getHex() !== 0) mats.add(m)
@@ -156,27 +167,91 @@ export function createFlyer3D() {
     el.style.transform = `translate3d(${x - px / 2}px, ${y - px / 2}px, 0)`
   }
 
-  // Posa di volo: busto inclinato nel verso del moto, braccia aperte con i palmi in giù,
-  // gambe leggermente piegate, testa che guarda verso il mouse.
-  function pose(f, clock, thrust, cell, motion) {
+  // Molle smorzate: il corpo e gli arti inseguono la posa ideale con un po' di ritardo
+  // e di rimbalzo, invece di scattare. k = rigidezza, z = smorzamento (1 = senza rimbalzo).
+  const springs = {}
+  function spring(name, target, dt, k, z) {
+    const s = (springs[name] ??= { x: target, v: 0 })
+    const c = 2 * Math.sqrt(k) * z
+    s.v += (k * (target - s.x) - c * s.v) * dt
+    s.x += s.v * dt
+    return s.x
+  }
+
+  // Posa di volo, calcolata da velocità e accelerazione:
+  // - si inclina nelle curve e si gira di tre quarti verso dove va, con un po' di rimbalzo
+  // - accelerando le braccia restano indietro e le gambe si allungano dietro, frenando
+  //   il corpo si raddrizza e le gambe tornano sotto
+  // - salendo spinge con i palmi verso il basso, scendendo si sporge in avanti
+  // - sospeso a mezz'aria respira e ondeggia, gambe che si muovono appena
+  function pose(f, clock, cell, dt) {
+    const sp = cell * 2.6
+    const acc = sp * 2.4
+    const vx = f.vx / sp
+    const vy = f.vy / sp
+    const ax = f.ax / acc
+    const ay = f.ay / acc
+    const speed = Math.min(1, Math.hypot(vx, vy))
+    const fwd = vx * f.face // velocità nel verso in cui guarda
+    const fwdAcc = ax * f.face
+    const t = clock + f.seed
+    const calm = 1 - speed
+    const breathe = Math.sin(t * 1.7)
+    const T = {
+      yaw: f.face * (0.5 + 0.12 * Math.min(1, Math.abs(vx))) + 0.06 * Math.sin(t * 0.7),
+      roll: -(0.3 * vx + 0.14 * ax) + 0.03 * calm * Math.sin(t * 1.1),
+      pitch: 0.16 * vy + 0.1 * ay + 0.025 * calm * breathe,
+      armBack: 0.45 * fwdAcc + 0.2 * fwd,
+      armOpen: 0.42 + 0.18 * Math.max(0, -ay) + 0.04 * calm * breathe,
+      elbow: 0.25 + 0.25 * speed,
+      legBack: 0.35 * Math.max(0, fwd) + 0.2 * speed,
+      knee: 0.2 + 0.45 * speed + 0.15 * Math.max(0, -ay),
+      headX: 0.12 * vy,
+      kick: calm * 0.08
+    }
+    // passi piccoli: la molla resta stabile anche con un fotogramma lungo
+    let left = Math.min(dt, 0.5)
+    const st = {}
+    do {
+      const h = Math.min(left, 1 / 60)
+      left -= h
+      st.yaw = spring('yaw', T.yaw, h, 18, 0.55)
+      st.roll = spring('roll', T.roll, h, 26, 0.5)
+      st.pitch = spring('pitch', T.pitch, h, 22, 0.55)
+      st.armBack = spring('armBack', T.armBack, h, 20, 0.35)
+      st.armOpen = spring('armOpen', T.armOpen, h, 24, 0.45)
+      st.elbow = spring('elbow', T.elbow, h, 20, 0.5)
+      st.legBack = spring('legBack', T.legBack, h, 12, 0.4)
+      st.knee = spring('knee', T.knee, h, 14, 0.45)
+      st.headX = spring('headX', T.headX, h, 30, 0.7)
+    } while (left > 1e-4)
+
+    pivot.rotation.set(st.pitch, st.yaw, st.roll, 'ZYX')
+
     for (const [obj, rot] of base) obj.rotation.copy(rot)
     const n = nodes
-    const swing = motion ? Math.sin(clock * 2.4) : 0
-    if (n.Shoulder_L) n.Shoulder_L.rotation.z -= 0.42 + swing * 0.05
-    if (n.Shoulder_R) n.Shoulder_R.rotation.z += 0.42 + swing * 0.05
-    if (n.Shoulder_L) n.Shoulder_L.rotation.x += 0.15 * thrust
-    if (n.Shoulder_R) n.Shoulder_R.rotation.x += 0.15 * thrust
-    if (n.Elbow_L) n.Elbow_L.rotation.x -= 0.25
-    if (n.Elbow_R) n.Elbow_R.rotation.x -= 0.25
-    if (n.Hip_L) n.Hip_L.rotation.x += 0.12 + 0.18 * thrust
-    if (n.Hip_R) n.Hip_R.rotation.x += 0.05 + 0.1 * thrust
-    if (n.Knee_L) n.Knee_L.rotation.x -= 0.3 + 0.2 * thrust
-    if (n.Knee_R) n.Knee_R.rotation.x -= 0.15 + 0.15 * thrust
-    if (n.Head && motion) {
-      n.Head.rotation.y += look.x * 0.35
-      n.Head.rotation.x += look.y * 0.2
+    const lag = Math.sin(t * 2.9) // gambe e braccia non sono mai perfettamente simmetriche
+    if (n.Body) n.Body.rotation.z += 0.03 * calm * Math.sin(t * 0.9)
+    if (n.Shoulder_L) {
+      n.Shoulder_L.rotation.z -= st.armOpen + 0.03 * lag
+      n.Shoulder_L.rotation.x += st.armBack
     }
-    for (const m of glow) m.emissiveIntensity = motion ? 1.3 + 0.2 * Math.sin(clock * 2.3) : 1.3
+    if (n.Shoulder_R) {
+      n.Shoulder_R.rotation.z += st.armOpen - 0.03 * lag
+      n.Shoulder_R.rotation.x += st.armBack * 0.85
+    }
+    if (n.Elbow_L) n.Elbow_L.rotation.x -= st.elbow
+    if (n.Elbow_R) n.Elbow_R.rotation.x -= st.elbow * 1.1
+    if (n.Hip_L) n.Hip_L.rotation.x += st.legBack + 0.08 + T.kick * Math.sin(t * 2.2)
+    if (n.Hip_R) n.Hip_R.rotation.x += st.legBack * 0.7 + T.kick * Math.sin(t * 2.2 + 2.4)
+    if (n.Knee_L) n.Knee_L.rotation.x -= st.knee + 0.12
+    if (n.Knee_R) n.Knee_R.rotation.x -= st.knee * 0.75
+    if (n.Head) {
+      n.Head.rotation.y += look.x * 0.35
+      n.Head.rotation.x += look.y * 0.2 + st.headX
+    }
+    const thrust = Math.min(1, 0.3 * speed + Math.hypot(ax, ay))
+    for (const m of glow) m.emissiveIntensity = 1.2 + 0.35 * thrust + 0.08 * Math.sin(t * 2.3)
   }
 
   // Disegna il personaggio centrato in (x, y). Restituisce i punti da cui escono le
@@ -204,16 +279,15 @@ export function createFlyer3D() {
     const k = Math.min(1, dt * 5)
     look.x += (lx - look.x) * k
     look.y += (ly - look.y) * k
+    // nuovo volo: le molle ripartono dalla posa di adesso
+    if (f !== current) {
+      current = f
+      for (const key of Object.keys(springs)) delete springs[key]
+    }
 
-    // si gira di tre quarti verso dove vola
-    const targetYaw = f.face * 0.55
-    yaw += (targetYaw - yaw) * Math.min(1, dt * 6)
-    pivot.rotation.set(0, yaw, 0, 'ZYX')
-    const tilt = Math.max(-0.35, Math.min(0.35, (f.vx / (cell * 2.6)) * 0.35))
-    pivot.rotation.z = -tilt
     pivot.scale.setScalar(Math.max(0.001, f.scale))
-    renderer.toneMappingExposure = light ? 1.0 : 1.12
-    pose(f, clock, thrust, cell, motion)
+    renderer.toneMappingExposure = light ? 0.95 : 1.05
+    pose(f, clock, cell, dt)
     renderer.render(scene, camera)
 
     // punti delle fiammelle, proiettati sullo schermo
