@@ -3,6 +3,7 @@
     Sfondo animato dallo scroll:
     - griglia disegnata su canvas, con parallasse
     - blocchi della griglia che si alzano in 3D, ognuno in un momento diverso dello scroll
+    - in cima alla home i blocchi compongono la scritta NISIIX
     - bagliori dorati che attraversano lo schermo
   -->
   <div class="scroll-bg" aria-hidden="true">
@@ -15,22 +16,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 const canvas = ref(null)
+const route = useRoute()
 
 // ---- Parametri ----
-const CELL = 60 // lato di un quadrato della griglia (px)
+// lato di un quadrato della griglia (px): 5vw tra 18 e 60, così la scritta entra anche su mobile
+const cellSize = (w) => Math.min(60, Math.max(18, Math.floor(w / 20)))
 const PARALLAX = 0.12 // la griglia scorre al 12% della velocità della pagina
 const DENSITY = 0.12 // quota di quadrati che possono alzarsi
 const MAX_LIFT = 0.22 // altezza massima: il tetto del blocco si avvicina del 16% verso chi guarda
 const RISE_WINDOW = 1300 // px di scroll in cui un blocco resta alzato
-const EASE = 0.08
-const SCROLL_START = 20 // px: i blocchi iniziano ad alzarsi solo dopo questo scroll // morbidezza dell'animazione (più basso = più lento)
+const EASE = 0.08 // morbidezza dell'animazione (più basso = più lento)
+const SCROLL_START = 20 // px: i blocchi casuali iniziano ad alzarsi solo dopo questo scroll
+const WORD_LIFT = 0.07 // altezza dei blocchi della scritta: bassa, così le lettere restano leggibili
+const WORD_FADE = 380 // px di scroll in cui la scritta NISIIX si abbassa fino a sparire
+
+// Scritta NISIIX a blocchi (5 righe), mostrata in cima alla home
+const GLYPHS = {
+  N: ['X..X', 'XX.X', 'X.XX', 'X..X', 'X..X'],
+  I: ['X', 'X', 'X', 'X', 'X'],
+  S: ['XXX', 'X..', 'XXX', '..X', 'XXX'],
+  X: ['X.X', 'X.X', '.X.', 'X.X', 'X.X']
+}
+const WORD = 'NISIIX'
+const WORD_CELLS = [] // [col, row] relativi all'angolo in alto a sinistra della scritta
+let WORD_W = 0
+for (const ch of WORD) {
+  const g = GLYPHS[ch]
+  g.forEach((line, r) => [...line].forEach((v, c) => v === 'X' && WORD_CELLS.push([WORD_W + c, r])))
+  WORD_W += g[0].length + 1
+}
+WORD_W -= 1
+const WORD_H = 5
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 let ctx = null
+let CELL = 60
+let wordSet = null // celle ("col:row") della scritta, null se non siamo sulla home
 let width = 0
 let height = 0
 let dpr = 1
@@ -47,6 +73,15 @@ function hash(col, row, seed) {
 
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
+  let word = 0
+  if (wordSet && wordSet.has(`${col}:${row}`)) {
+    const w = Math.max(0, 1 - scrollY / WORD_FADE)
+    word = WORD_LIFT * w * w
+  }
+  return Math.max(word, randomLift(col, row, scrollY))
+}
+
+function randomLift(col, row, scrollY) {
   if (hash(col, row, 1) > DENSITY) return 0
   // ogni blocco ha il suo momento, distribuito lungo la pagina a partire dal primo scroll:
   // in cima alla pagina non c'è nessun blocco alzato
@@ -61,6 +96,7 @@ function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2)
   width = window.innerWidth
   height = window.innerHeight
+  CELL = cellSize(width)
   const el = canvas.value
   el.width = Math.round(width * dpr)
   el.height = Math.round(height * dpr)
@@ -68,6 +104,22 @@ function resize() {
   el.style.height = `${height}px`
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   maxScroll = Math.max(document.documentElement.scrollHeight - height, 1)
+  measureWord()
+}
+
+// Posiziona la scritta sulla griglia, centrata nello spazio vuoto lasciato dal titolo della home
+function measureWord() {
+  const anchor = route.name === 'home' ? document.querySelector('[data-bg-word]') : null
+  if (!anchor) {
+    wordSet = null
+    return
+  }
+  const rect = anchor.getBoundingClientRect()
+  // posizione nella pagina; a scroll 0 la riga r della griglia sta a y = r * CELL
+  const centerY = rect.top + window.scrollY + rect.height / 2
+  const top = Math.round(centerY / CELL - WORD_H / 2)
+  const left = Math.round((width / CELL - WORD_W) / 2)
+  wordSet = new Set(WORD_CELLS.map(([c, r]) => `${left + c}:${top + r}`))
 }
 
 // Prospettiva vista dall'alto: il tetto di un blocco alzato si allarga dal centro dello schermo
@@ -144,7 +196,8 @@ function drawBlock({ x, y, lift }, cx, cy) {
     [x, y + CELL]
   ]
   const top = base.map(([px, py]) => project(px, py, lift, cx, cy))
-  const strength = Math.min(lift / MAX_LIFT, 1)
+  // i blocchi bassi (come quelli della scritta) restano ben visibili
+  const strength = Math.min(lift / (MAX_LIFT * 0.3), 1)
 
   // Facce laterali: più chiare quelle rivolte verso l'alto (luce dall'alto)
   for (let i = 0; i < 4; i++) {
@@ -165,9 +218,9 @@ function drawBlock({ x, y, lift }, cx, cy) {
   ctx.moveTo(top[0][0], top[0][1])
   for (let i = 1; i < 4; i++) ctx.lineTo(top[i][0], top[i][1])
   ctx.closePath()
-  ctx.fillStyle = `rgba(24, 22, 16, ${0.9 * strength})`
+  ctx.fillStyle = `rgba(24, 22, 16, ${0.96 * strength})`
   ctx.fill()
-  ctx.strokeStyle = `rgba(212, 175, 55, ${0.5 * strength})`
+  ctx.strokeStyle = `rgba(212, 175, 55, ${0.55 * strength})`
   ctx.lineWidth = 1
   ctx.stroke()
 }
@@ -199,10 +252,24 @@ onMounted(() => {
   // l'altezza della pagina cambia cambiando pagina o lingua
   resizeObserver = new ResizeObserver(() => {
     maxScroll = Math.max(document.documentElement.scrollHeight - height, 1)
+    measureWord()
     schedule()
   })
   resizeObserver.observe(document.body)
 })
+
+// cambiando pagina la scritta compare o scompare (dopo la transizione)
+watch(
+  () => route.name,
+  () => {
+    measureWord()
+    schedule()
+    setTimeout(() => {
+      measureWord()
+      schedule()
+    }, 500)
+  }
+)
 
 onUnmounted(() => {
   cancelAnimationFrame(frame)

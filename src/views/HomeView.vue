@@ -8,9 +8,11 @@
           <i class="pi pi-code"></i>
           <span>{{ $t('home.badge') }}</span>
         </div>
-        <h1 class="hero-title fade-in fade-in-delay-1">
-          {{ $t('home.hello') }}<br>
-          <span class="gold-gradient">Nisiix Dev</span>
+        <!-- Il titolo resta per screen reader e motori di ricerca; a schermo la parola
+             NISIIX è composta dai blocchi 3D dello sfondo, in questo spazio vuoto -->
+        <h1 class="hero-title">
+          <span class="sr-only">{{ $t('home.hello') }} Nisiix Dev</span>
+          <span class="hero-word" data-bg-word aria-hidden="true"></span>
         </h1>
         <p class="hero-subtitle fade-in fade-in-delay-2">{{ $t('home.subtitle') }}</p>
       </div>
@@ -198,24 +200,27 @@ const hobbies = computed(() =>
   margin-bottom: 28px;
 }
 
-.hero-title .gold-gradient {
-  background-size: 200% auto;
-  animation: goldSweep 6s ease-in-out infinite;
-}
-
-@keyframes goldSweep {
-  0%, 100% { background-position: 0% center; }
-  50% { background-position: 100% center; }
-}
-
 .hero-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.8rem, 7vw, 5rem);
-  font-weight: 900;
-  line-height: 1.1;
-  color: var(--text-white);
-  margin-bottom: 24px;
-  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+
+/* Spazio riservato alla scritta fatta di blocchi: 5 righe di lettere + margine sopra e sotto,
+   la cella della griglia vale clamp(18px, 5vw, 60px) come nello sfondo */
+.hero-word {
+  display: block;
+  height: calc(8 * clamp(18px, 5vw, 60px));
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hero-subtitle {
