@@ -130,13 +130,13 @@ export function createCritters() {
 // Orsacchiotto giallo in 2D, originale: testa tonda con orecchie tonde, muso chiaro con
 // nasino nero, pancia chiara, braccine e piedini con i cuscinetti. Guarda dove cammina
 // e ogni tanto apre la bocca come se masticasse.
-function drawCritter(ctx, x, y, cell, c, clock, light) {
+export function drawCritter(ctx, x, y, cell, c, clock, light) {
   const u = cell * 0.36 * c.scale // unità di misura: circa il raggio della testa
   if (u <= 0) return
   const [dx, dy] = c.dir
   const face = dx < 0 ? -1 : 1 // girato verso sinistra o destra
   const look = dy !== 0 ? 0 : 1 // di fronte quando va su o giù
-  const walk = Math.sin(clock * 14 + c.life)
+  const walk = c.idle ? 0 : Math.sin(clock * 14 + c.life)
   const hop = Math.abs(walk) * u * 0.1
   const outline = light ? '#6b5200' : '#3a2c00'
   const cream = '#fff3c4'
@@ -160,7 +160,8 @@ function drawCritter(ctx, x, y, cell, c, clock, light) {
   ctx.fill()
 
   ctx.translate(0, -hop)
-  ctx.scale(face, 1)
+  // c.turn (coseno dell'angolo) schiaccia il disegno quando ruota con la sua lettera
+  ctx.scale(face * (c.turn ?? 1), 1)
 
   // piedini con il cuscinetto chiaro
   for (const side of [-1, 1]) {

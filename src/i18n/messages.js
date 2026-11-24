@@ -31,6 +31,8 @@ export const messages = {
     },
     home: {
       badge: 'Sviluppatore software',
+      snap: 'Schiocca le dita',
+      sacrifice: 'Sacrifica Iron Man',
       hello: 'Ciao, sono',
       subtitle: 'Sviluppatore software specializzato in soluzioni gestionali, strumenti digitali e interfacce moderne che fanno la differenza.',
       scroll: 'Scorri',
@@ -151,6 +153,8 @@ export const messages = {
     },
     home: {
       badge: 'Software developer',
+      snap: 'Snap your fingers',
+      sacrifice: 'Sacrifice Iron Man',
       hello: "Hi, I'm",
       subtitle: 'Software developer specialised in business management software, digital tools and modern interfaces that make a difference.',
       scroll: 'Scroll',

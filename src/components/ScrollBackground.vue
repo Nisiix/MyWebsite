@@ -20,6 +20,8 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
 import { createCritters } from './bgCritters'
+import { createArmy } from './bgSnap'
+import { snap } from '@/stores/snap'
 
 const canvas = ref(null)
 const route = useRoute()
@@ -117,7 +119,7 @@ function hash(col, row, seed) {
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
   let word = 0
-  const cell = wordCells?.get(`${col}:${row}`)
+  const cell = wordFx.mode === 'none' ? wordCells?.get(`${col}:${row}`) : null
   if (cell && wordElapsed >= cell.delay) {
     const w = Math.max(0, 1 - scrollY / WORD_FADE)
     word = WORD_LIFT * w * w
@@ -193,6 +195,79 @@ let hoveredLetter = -1
 let lastPointer = null // ultima posizione del mouse nelle coordinate della griglia
 let lastFrame = 0
 
+// ---- "Schiocca le dita" (pulsante in home, vedi bgSnap.js) ----
+// I blocchi della scritta cadono fuori dallo schermo e un orsacchiotto per blocco prende il
+// loro posto; al ritorno i blocchi risalgono con il movimento inverso.
+const GRAVITY = 2400 // px/s²
+const army = createArmy()
+// tau: tempo della caduta in secondi (0 = scritta al suo posto, end = tutti i blocchi fuori)
+const wordFx = { mode: 'none', cells: null, end: 0, tau0: 0, dir: 1, start: 0 }
+
+const fxTau = (now) => wordFx.tau0 + (wordFx.dir * (now - wordFx.start)) / 1000
+
+function startFall(now) {
+  const gridScroll = window.scrollY * PARALLAX
+  const cells = new Map()
+  let end = 0
+  for (const [key, cell] of wordCells) {
+    const [col, row] = key.split(':').map(Number)
+    const y0 = row * CELL - gridScroll
+    const drop = height - y0 + CELL * 2
+    const dur = Math.sqrt((2 * drop) / GRAVITY)
+    // le lettere cadono una dopo l'altra, i blocchi con un piccolo sfasamento
+    const delay = cell.letter * 0.07 + Math.random() * 0.25
+    cells.set(key, { col, row, delay, dur, lift: lifts.get(key) || WORD_LIFT })
+    end = Math.max(end, delay + dur)
+  }
+  Object.assign(wordFx, { mode: 'falling', cells, end, tau0: 0, dir: 1, start: now })
+}
+
+function startRise(now) {
+  if (wordFx.mode === 'none') return
+  const tau = Math.min(Math.max(fxTau(now), 0), wordFx.end)
+  Object.assign(wordFx, { mode: 'rising', tau0: tau, dir: -1, start: now })
+}
+
+// Blocchi della scritta durante la caduta o la risalita
+function fxBlocks(now, blocks, cx, cy) {
+  const tau = fxTau(now)
+  if (wordFx.mode === 'falling' && tau >= wordFx.end) wordFx.mode = 'gone'
+  if (wordFx.mode === 'rising' && tau <= 0) {
+    // di nuovo al loro posto: la scritta torna normale, alla stessa altezza
+    for (const [key, c] of wordFx.cells) lifts.set(key, c.lift)
+    wordFx.mode = 'none'
+    return false
+  }
+  if (wordFx.mode === 'gone') return false
+  const gridScroll = window.scrollY * PARALLAX
+  for (const c of wordFx.cells.values()) {
+    const t = Math.min(Math.max(tau - c.delay, 0), c.dur)
+    const fall = 0.5 * GRAVITY * t * t
+    const x = c.col * CELL
+    const y = c.row * CELL - gridScroll + fall
+    if (y > height + CELL) continue
+    blocks.push({ x, y, lift: c.lift, dist: Math.hypot(x + CELL / 2 - cx, y + CELL / 2 - cy), spin: null })
+  }
+  return true
+}
+
+// Celle libere per gli orsacchiotti: niente blocchi alzati (la scritta in quel momento non c'è)
+function isCellFreeForArmy(col, row) {
+  const key = `${col}:${row}`
+  return (lifts.get(key) ?? 0) < 0.003 && randomLift(col, row, window.scrollY) === 0
+}
+
+function makeView() {
+  return {
+    cols: Math.floor(width / CELL),
+    minRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.ceil(80 / CELL),
+    maxRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.floor(height / CELL) - 1,
+    cell: CELL,
+    gridScroll: window.scrollY * PARALLAX,
+    light: theme.value === 'light'
+  }
+}
+
 // Personaggini che girano nella griglia della home (vedi bgCritters.js)
 const critters = createCritters()
 let critterFrame = 0
@@ -248,6 +323,8 @@ function startSpin(index, dir) {
 // stretta come la I può cadere tra due segnalazioni: si controlla tutto il tratto percorso.
 function onPointerMove(e) {
   if (e.pointerType !== 'mouse' || !wordLetters.length) return
+  // con la scritta caduta le lettere girano solo quando gli orsacchiotti l'hanno ricomposta
+  if (wordFx.mode !== 'none' && !army.assembled()) return
   const x = e.clientX
   const y = e.clientY + window.scrollY * PARALLAX
   const from = lastPointer ?? { x, y }
@@ -307,8 +384,9 @@ function draw() {
   // tra un battito e l'altro (pagina ferma, nessun personaggino) passa fino a un secondo
   const critterDt = Math.min(now - (critterFrame || now), 1200) / 1000
   critterFrame = now
+  const snapBusy = wordFx.mode !== 'none' || army.active()
   const view = {
-    active: route.name === 'home',
+    active: route.name === 'home' && !snapBusy,
     cols: Math.floor(width / CELL),
     minRow: firstRow + Math.ceil(80 / CELL), // sotto la barra di navigazione
     maxRow: firstRow + Math.floor(height / CELL) - 1,
@@ -325,13 +403,29 @@ function draw() {
   const angles = wordLetters.map((l, i) => stepSpin(l, i, dt))
   if (wordLetters.some((l) => l.spin)) animating = true
   else lastFrame = 0
+  // Esercito di orsacchiotti di "Schiocca le dita": ruotano con la propria lettera
+  if (army.update(dt || 1 / 60, makeView(), isCellFreeForArmy)) animating = true
+  army.draw(ctx, makeView(), (col, row) => {
+    const cell = wordCells?.get(`${col}:${row}`)
+    const angle = cell ? angles[cell.letter] : 0
+    if (!angle) return null
+    const l = wordLetters[cell.letter]
+    return { angle, axis: l.col + l.w / 2 }
+  })
+
   const blocks = []
   const seen = new Set()
+  if (wordFx.mode !== 'none' && wordFx.cells && fxBlocks(now, blocks, cx, cy)) animating = true
   for (let r = -1; r < rows; r++) {
     const row = firstRow + r
     for (let col = 0; col < cols; col++) {
       const key = `${col}:${row}`
       seen.add(key)
+      // durante la caduta e la risalita i blocchi della scritta li disegna fxBlocks
+      if (wordFx.mode !== 'none' && wordFx.cells?.has(key)) {
+        lifts.delete(key)
+        continue
+      }
       const target = targetLift(col, row, scrollY)
       const prev = lifts.get(key) ?? 0
       const ease = wordCells?.has(key) ? WORD_EASE : EASE
@@ -497,6 +591,23 @@ onMounted(() => {
   critterTimer = setInterval(() => {
     if (route.name === 'home') schedule()
   }, 1000)
+})
+
+// Pulsante "Schiocca le dita": via i blocchi ed entrano gli orsacchiotti, o il contrario
+watch(snap, ({ mode, instant }) => {
+  const now = performance.now()
+  if (mode === 'snapped') {
+    if (!wordCells) return
+    startFall(now)
+    army.start([...wordCells.keys()].map((k) => k.split(':').map(Number)), makeView())
+  } else if (instant) {
+    wordFx.mode = 'none'
+    army.clear()
+  } else {
+    startRise(now)
+    army.goHome()
+  }
+  schedule()
 })
 
 // nuovo tema: ridisegna con i colori giusti

@@ -4,9 +4,8 @@
     <section class="hero" id="hero-section">
 
       <div class="container hero-content">
-        <div class="hero-badge fade-in">
-          <i class="pi pi-code"></i>
-          <span>{{ $t('home.badge') }}</span>
+        <div class="hero-chip fade-in">
+          <SnapChip />
         </div>
         <!-- Il titolo resta per screen reader e motori di ricerca; a schermo la parola
              NISIIX è composta dai blocchi 3D dello sfondo, in questo spazio vuoto -->
@@ -145,6 +144,7 @@
 import { ref, computed } from 'vue'
 import { useContattiStore } from '@/stores/contatti'
 import { t } from '@/i18n'
+import SnapChip from '@/components/SnapChip.vue'
 
 const contatti = useContattiStore()
 const visibleSocials = computed(() => contatti.socials.filter((s) => s.url))
@@ -196,7 +196,7 @@ const hobbies = computed(() =>
   z-index: 1;
 }
 
-.hero .hero-badge {
+.hero .hero-chip {
   margin-bottom: 28px;
 }
 
