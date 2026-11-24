@@ -83,6 +83,9 @@ const FALL_DELAY = 200 // ms: il lampo del gesto parte prima che il pulsante cad
 // rimpicciolito in proporzione fino all'altezza della chip, con la stessa grafica
 const SLIDER_H = 58
 const APPEAR_MS = 2400 // ricomparsa lenta e progressiva del pulsante (uguale al CSS)
+// dopo "Sacrifica Iron Man" la chip si gira appena finito il lampo rosso del kit (0,75 s):
+// il pulsante torna a riposo (a 1,05 s) quando è già girato e non si vede
+const FLASH_MS = 750
 
 const labels = computed(() => ({
   chip: t('home.badge'),
@@ -103,7 +106,7 @@ const sizer = ref(null)
 const scale = ref(0.72) // altezza della chip / altezza dello slider, misurata al montaggio
 let sizeObserver
 const cooling = ref(false)
-let coolTimer, phaseTimer, fallTimer
+let coolTimer, phaseTimer, fallTimer, backTimer
 // dopo lo schiocco il pulsante cade fuori dallo schermo come i blocchi di NISIIX,
 // resta nascosto (occupando il suo posto) e riappare in dissolvenza a scritta completa
 const phase = ref('') // '' | 'falling' | 'hidden' | 'appearing'
@@ -155,9 +158,11 @@ function onSacrifice() {
   cooling.value = true
   clearTimeout(coolTimer)
   coolTimer = setTimeout(() => (cooling.value = false), COOLDOWN)
+  clearTimeout(backTimer)
+  backTimer = setTimeout(onSacrificeEnd, FLASH_MS)
 }
 
-// finito il lampo rosso torna la chip
+// finito il lampo rosso torna la chip (anche a fine animazione del kit, per sicurezza)
 function onSacrificeEnd() {
   if (current.value === 'sacrifice') show('chip')
 }
@@ -239,6 +244,7 @@ onUnmounted(() => {
   clearTimeout(coolTimer)
   clearTimeout(phaseTimer)
   clearTimeout(fallTimer)
+  clearTimeout(backTimer)
   // lo schiocco resta attivo anche cambiando pagina: si annulla solo con "Sacrifica Iron Man"
 })
 </script>
