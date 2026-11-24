@@ -91,9 +91,7 @@ export const messages = {
       specTitle: 'Area di specializzazione',
       specText: "La mia principale area di competenza è lo <strong class=\"gold-text\">sviluppo di software gestionali</strong>, dalla progettazione architetturale all'implementazione completa. Creo <strong class=\"gold-text\">tool</strong> e <strong class=\"gold-text\">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di gestire progetti di migrazione e modernizzazione con una comprensione completa dello stack tecnologico.",
       stackTitle: 'Stack tecnologico completo',
-      download: 'Scarica il CV in PDF',
-      downloadOther: 'English version',
-      downloadOtherLang: 'en'
+      download: 'Scarica il CV in PDF'
     },
     cv: {
       role: 'Sviluppatore software',
@@ -130,7 +128,7 @@ export const messages = {
   en: {
     nav: {
       home: 'Home',
-      curriculum: 'Résumé',
+      curriculum: 'Curriculum',
       projects: 'Projects',
       toggle: 'Open or close the menu',
       language: 'Language',
@@ -145,13 +143,13 @@ export const messages = {
     },
     meta: {
       home: 'Nisiix Dev, software developer: custom business management software, tools and templates for business platforms, modern web interfaces with Vue.js.',
-      curriculum: 'Résumé of Nisiix Dev: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Downloadable as PDF.',
+      curriculum: 'Curriculum of Nisiix Dev: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Downloadable as PDF.',
       projects: 'Projects by Nisiix Dev: Todo Doto, a desktop app for project roadmaps, and Tradermon, an educational investing game.',
       notFound: 'The page you are looking for does not exist.'
     },
     titles: {
       home: 'Home — Nisiix Dev',
-      curriculum: 'Résumé — Nisiix Dev',
+      curriculum: 'Curriculum — Nisiix Dev',
       projects: 'Projects — Nisiix Dev',
       notFound: 'Page not found — Nisiix Dev'
     },
@@ -204,22 +202,20 @@ export const messages = {
           description: 'Sport is a key part of my life. I regularly play football and padel, two passions that have always been with me. I am generally drawn to sport of every kind and also enjoy volleyball, table tennis and skiing.'
         }
       ],
-      contactsTitle: 'Contact',
-      contactsSubtitle: 'Have a project in mind or just want to chat? Get in touch.',
+      contactsTitle: 'Get in touch',
+      contactsSubtitle: 'Have a project in mind or just want to chat? Drop me a line.',
       copyLabel: 'Copy email',
       copiedLabel: 'Email copied'
     },
     curriculum: {
       badge: 'Technical skills',
       titleStart: 'My',
-      titleAccent: 'résumé',
+      titleAccent: 'curriculum',
       subtitle: 'Languages, tools and platforms I have mastered over my career. Mainly business management software, tools and templates for business platforms; secondly websites and web applications built for fun, for personal use and for learning.',
       specTitle: 'Area of expertise',
       specText: 'My main area of expertise is <strong class="gold-text">business management software</strong>, from architectural design to full implementation. I build <strong class="gold-text">tools</strong> and <strong class="gold-text">templates</strong> for business platforms that speed up development and ensure consistency and quality across the whole application ecosystem. My experience with both legacy (VB6) and modern (Vue.js, C#) technologies lets me handle migration and modernisation projects with a complete understanding of the technology stack.',
       stackTitle: 'Full technology stack',
-      download: 'Download CV as PDF',
-      downloadOther: 'Versione italiana',
-      downloadOtherLang: 'it'
+      download: 'Download CV as PDF'
     },
     cv: {
       role: 'Software developer',

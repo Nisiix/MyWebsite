@@ -17,10 +17,6 @@
               <i class="pi pi-download" aria-hidden="true"></i>
               <span>{{ $t('curriculum.download') }}</span>
             </a>
-            <a :href="cvOther" class="btn-outline" :hreflang="$t('curriculum.downloadOtherLang')" download>
-              <i class="pi pi-file-pdf" aria-hidden="true"></i>
-              <span>{{ $t('curriculum.downloadOther') }}</span>
-            </a>
           </div>
         </div>
       </div>
@@ -83,14 +79,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useCurriculumStore } from '@/stores/curriculum'
-import { t, locale } from '@/i18n'
+import { locale } from '@/i18n'
 
 const store = useCurriculumStore()
 
 // CV in PDF generati durante il deploy da scripts/build-cv.mjs (cartella cv/ del sito)
 const cvUrl = (lang) => `${import.meta.env.BASE_URL}cv/NisiixDev-CV-${lang}.pdf`
+// solo il CV nella lingua selezionata
 const cvCurrent = computed(() => cvUrl(locale.value))
-const cvOther = computed(() => cvUrl(t('curriculum.downloadOtherLang')))
 </script>
 
 <style scoped>
