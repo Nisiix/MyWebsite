@@ -87,7 +87,6 @@ export const messages = {
     },
     footer: {
       madeWith: 'Fatto con',
-      andCode: 'e codice',
       heart: 'passione'
     }
   },
@@ -178,7 +177,6 @@ export const messages = {
     },
     footer: {
       madeWith: 'Made with',
-      andCode: 'and code',
       heart: 'love'
     }
   }

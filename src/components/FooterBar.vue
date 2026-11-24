@@ -5,7 +5,6 @@
       <p class="footer-copy">
         &copy; {{ currentYear }} Nisiix Dev · {{ $t('footer.madeWith') }}
         <i class="pi pi-heart-fill" style="color: var(--gold); font-size: 0.8rem;" :aria-label="$t('footer.heart')"></i>
-        {{ $t('footer.andCode') }}
       </p>
     </div>
   </footer>
