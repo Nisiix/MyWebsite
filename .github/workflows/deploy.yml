@@ -27,9 +27,14 @@ jobs:
       - run: npm run build
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
-      # npm run build crea anche curriculum.html, progetti.html, 404.html, sitemap e robots
-      # (scripts/postbuild.mjs). Poi il CV in PDF, italiano e inglese, dai dati del curriculum.
+      # npm run build crea anche le pagine per sezione e lingua (inglese in radice, italiano
+      # sotto it/), 404.html, sitemap e robots (scripts/postbuild.mjs). Poi Chromium riempie
+      # quelle pagine con il contenuto già disegnato (prerender, per la SEO) e genera il CV
+      # in PDF, italiano e inglese, dai dati del curriculum.
       - run: npx playwright install --with-deps chromium
+      - run: npm run prerender
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
       - run: npm run cv
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

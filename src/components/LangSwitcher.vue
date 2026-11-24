@@ -36,16 +36,27 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { LOCALES, locale } from '@/i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { LOCALES, locale, localePath, saveLocaleChoice } from '@/i18n'
 
 const open = ref(false)
 const root = ref(null)
 const toggle = ref(null)
 const current = computed(() => LOCALES.find((l) => l.code === locale.value) || LOCALES[0])
 
+const route = useRoute()
+const router = useRouter()
+
+// La lingua scelta viene ricordata e si passa alla stessa pagina nell'altra lingua
 function choose(code) {
-  locale.value = code
+  saveLocaleChoice(code)
   close(true)
+  if (code === locale.value) return
+  if (route.name === 'notfound') {
+    locale.value = code
+    return
+  }
+  router.push({ path: localePath(route.path, code), hash: route.hash, query: route.query })
 }
 
 function close(focusToggle = false) {

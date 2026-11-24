@@ -13,7 +13,7 @@
         </h1>
         <p class="notfound-heading fade-in fade-in-delay-2" aria-hidden="true">{{ $t('notFound.title') }}</p>
         <p class="notfound-text fade-in fade-in-delay-2">{{ $t('notFound.text') }}</p>
-        <router-link to="/" class="btn-gold fade-in fade-in-delay-3">
+        <router-link :to="$lp('/')" class="btn-gold fade-in fade-in-delay-3">
           <i class="pi pi-home" aria-hidden="true"></i>
           <span>{{ $t('notFound.back') }}</span>
         </router-link>

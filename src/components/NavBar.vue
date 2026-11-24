@@ -2,7 +2,7 @@
   <header :class="['navbar', { scrolled: isScrolled, 'nav-open': store.isNavOpen }]">
     <div class="navbar-inner container">
       <!-- Logo -->
-      <router-link to="/" class="logo" @click="store.closeNav()">
+      <router-link :to="$lp('/')" class="logo" @click="store.closeNav()">
         <span class="logo-icon">Nisiix</span>
         <span class="logo-text-dev">Dev</span>
       </router-link>
@@ -64,24 +64,26 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIndexStore } from '@/stores/index'
 import LangSwitcher from '@/components/LangSwitcher.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import { localePath } from '@/i18n'
 
 const store = useIndexStore()
 const isScrolled = ref(false)
 const progress = ref(0)
 
-const navLinks = [
-  { name: 'Home', label: 'nav.home', to: { path: '/' }, icon: 'pi pi-home' },
-  { name: 'Curriculum', label: 'nav.curriculum', to: { path: '/curriculum' }, icon: 'pi pi-file' },
-  { name: 'Progetti', label: 'nav.projects', to: { path: '/progetti' }, icon: 'pi pi-folder-open' }
-]
+// I percorsi seguono la lingua attiva: /curriculum in inglese, /it/curriculum in italiano
+const navLinks = computed(() => [
+  { name: 'Home', route: 'home', label: 'nav.home', to: { path: localePath('/') }, icon: 'pi pi-home' },
+  { name: 'Curriculum', route: 'curriculum', label: 'nav.curriculum', to: { path: localePath('/curriculum') }, icon: 'pi pi-file' },
+  { name: 'Progetti', route: 'progetti', label: 'nav.projects', to: { path: localePath('/progetti') }, icon: 'pi pi-folder-open' }
+])
 
 function isActive(link) {
-  if (route.path !== link.to.path) return false
+  if (route.name !== link.route) return false
   return (link.to.hash || '') === route.hash
 }
 
