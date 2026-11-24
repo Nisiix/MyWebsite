@@ -3,7 +3,8 @@
     ref="root"
     type="button"
     class="snap-chip"
-    :class="{ cooling, waiting, dragging }"
+    :class="[{ cooling, waiting, dragging }, phase && 'is-' + phase]"
+    :style="fallStyle"
     :disabled="waiting"
     :aria-label="ariaLabel"
     :aria-pressed="current === 'sacrifice'"
@@ -47,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { t } from '@/i18n'
 import { setSnap, snapReady } from '@/stores/snap'
 
@@ -72,7 +73,12 @@ const faceEls = []
 const root = ref(null)
 const cooling = ref(false)
 const dragging = ref(false)
-let coolTimer, actTimer, nudgeTimer
+let coolTimer, actTimer, nudgeTimer, phaseTimer
+// dopo lo schiocco il pulsante cade fuori dallo schermo come i blocchi di NISIIX,
+// resta nascosto (occupando il suo posto) e riappare in dissolvenza a scritta completa
+const phase = ref('') // '' | 'falling' | 'hidden' | 'appearing'
+const fallStyle = ref({})
+const GRAVITY = 2400 // px/s², la stessa dei blocchi dello sfondo
 const visible = computed(() => ((turns.value % 2) + 2) % 2)
 const current = computed(() => faces.value[visible.value])
 const isSlider = computed(() => current.value !== 'chip')
@@ -112,7 +118,7 @@ function complete() {
     if (current.value !== kind) return
     if (kind === 'snap') {
       setSnap('snapped')
-      show('sacrifice')
+      fall()
     } else {
       setSnap('normal')
       show('chip')
@@ -122,6 +128,32 @@ function complete() {
     }
   }, 220)
 }
+
+function fall() {
+  const r = root.value.getBoundingClientRect()
+  const drop = window.innerHeight - r.top + r.height + 40
+  const dur = Math.sqrt((2 * drop) / GRAVITY)
+  fallStyle.value = { '--fall-dist': `${drop}px`, '--fall-dur': `${dur}s` }
+  phase.value = 'falling'
+  clearTimeout(phaseTimer)
+  phaseTimer = setTimeout(() => {
+    phase.value = 'hidden'
+    // mentre è nascosto prepara la faccia "Sacrifica Iron Man"
+    show('sacrifice')
+    if (snapReady.value) appear()
+  }, dur * 1000)
+}
+
+function appear() {
+  phase.value = 'appearing'
+  clearTimeout(phaseTimer)
+  phaseTimer = setTimeout(() => (phase.value = ''), 900)
+}
+
+// i robottini hanno composto la scritta: il pulsante riappare al suo posto
+watch(snapReady, (ready) => {
+  if (ready && phase.value === 'hidden') appear()
+})
 
 // ---- trascinamento (mouse e touch) ----
 let drag = null
@@ -199,6 +231,7 @@ onUnmounted(() => {
   clearTimeout(coolTimer)
   clearTimeout(actTimer)
   clearTimeout(nudgeTimer)
+  clearTimeout(phaseTimer)
   setSnap('normal', true)
 })
 </script>
@@ -216,6 +249,26 @@ onUnmounted(() => {
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
+}
+.snap-chip.is-falling {
+  pointer-events: none;
+  /* accelera come un oggetto che cade (stessa gravità dei blocchi) */
+  animation: chip-fall var(--fall-dur, 0.8s) cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+.snap-chip.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+.snap-chip.is-appearing {
+  animation: chip-appear 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes chip-fall {
+  from { transform: translateY(0) rotate(0); }
+  to { transform: translateY(var(--fall-dist, 100vh)) rotate(9deg); }
+}
+@keyframes chip-appear {
+  from { opacity: 0; transform: scale(0.85); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
 }
 .snap-chip.cooling {
   cursor: default;
