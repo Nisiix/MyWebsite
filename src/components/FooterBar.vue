@@ -40,7 +40,7 @@ const currentYear = new Date().getFullYear()
 
 .footer-copy {
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
   display: flex;
   align-items: center;
   gap: 6px;

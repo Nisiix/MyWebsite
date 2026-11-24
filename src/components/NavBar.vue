@@ -129,7 +129,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid transparent;
-  transition: all 0.4s var(--ease-smooth);
+  transition: 0.4s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .navbar.scrolled {
@@ -199,10 +200,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   gap: 8px;
   padding: 10px 20px;
   color: var(--text-secondary);
-  font-size: 0.92rem;
+  font-size: var(--text-md);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
   position: relative;
 }
 
@@ -278,7 +280,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   height: 2px;
   background: var(--text-primary);
   border-radius: 2px;
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: transform, opacity;
 }
 
 .nav-open .hamburger-line:nth-child(1) {
@@ -308,10 +311,11 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   gap: 12px;
   padding: 16px;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: var(--text-base);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  transition: all 0.3s;
+  transition: 0.3s;
+  transition-property: var(--transition-props);
 }
 
 .mobile-menu .mobile-link {
@@ -338,7 +342,8 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 /* Slide transition */
 .slide-down-enter-active,
 .slide-down-leave-active {
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: transform, opacity;
 }
 
 .slide-down-enter-from,
@@ -359,6 +364,15 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
   .mobile-menu {
     display: flex;
+  }
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+  .hamburger {
+    min-width: var(--tap);
+    min-height: var(--tap);
+    align-items: center;
+    justify-content: center;
   }
 }
 </style>

@@ -40,7 +40,11 @@
               <i class="pi pi-user"></i>
             </div>
             <h3 class="about-card-title">{{ $t('home.journeyTitle') }}</h3>
-            <p class="about-card-text" v-html="$t('home.journeyText')"></p>
+            <p class="about-card-text" v-html="$t('home.journeyText1')"></p>
+            <p class="about-card-text" v-html="$t('home.journeyText2')"></p>
+            <ul class="about-stack" :aria-label="$t('home.stackLabel')">
+              <li v-for="tech in stack" :key="tech" class="about-stack-item">{{ tech }}</li>
+            </ul>
           </div>
 
           <div class="about-card glass-card" v-reveal="2">
@@ -87,7 +91,11 @@
 
         <div class="hobbies-grid">
           <div class="hobby-card glass-card" v-for="(hobby, index) in hobbies" :key="index" v-reveal="index">
-            <div class="hobby-emoji">{{ hobby.emoji }}</div>
+            <div class="about-icon-wrapper hobby-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path v-for="(d, i) in hobby.icon" :key="i" :d="d" />
+              </svg>
+            </div>
             <h3 class="hobby-title">{{ hobby.title }}</h3>
             <p class="hobby-text">{{ hobby.description }}</p>
           </div>
@@ -177,10 +185,21 @@ const activities = computed(() =>
   t('home.activities').map((item, i) => ({ ...item, icon: activityIcons[i] }))
 )
 
-const hobbyEmojis = ['🎮', '🎵', '⚽']
+// Icone a linea disegnate nello stesso stile di PrimeIcons (che non ha controller né pallone)
+const hobbyIcons = [
+  // controller
+  ['M7 8h10a4 4 0 0 1 4 4v3.5a2.5 2.5 0 0 1-4.6 1.4L15 15H9l-1.4 1.9A2.5 2.5 0 0 1 3 15.5V12a4 4 0 0 1 4-4z', 'M7.5 11v3', 'M6 12.5h3', 'M15.5 11.5h.01', 'M17.5 13.5h.01'],
+  // cuffie
+  ['M4 15v-3a8 8 0 0 1 16 0v3', 'M4 15a2 2 0 0 1 2-2h1v7H6a2 2 0 0 1-2-2z', 'M20 15a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z'],
+  // pallone
+  ['M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z', 'M12 7.5l3.8 2.8-1.5 4.4H9.7l-1.5-4.4z', 'M12 7.5V3.2', 'M15.8 10.3l4.1-1.4', 'M14.3 14.7l2.6 3.6', 'M9.7 14.7l-2.6 3.6', 'M8.2 10.3L4.1 8.9']
+]
 const hobbies = computed(() =>
-  t('home.hobbies').map((item, i) => ({ ...item, emoji: hobbyEmojis[i] }))
+  t('home.hobbies').map((item, i) => ({ ...item, icon: hobbyIcons[i] }))
 )
+
+// Tecnologie principali del percorso, in evidenza sotto il testo
+const stack = ['Visual Basic 6', 'C#', '.NET', 'JavaScript', 'Vue.js', 'Java']
 </script>
 
 <style scoped>
@@ -188,11 +207,14 @@ const hobbies = computed(() =>
 .hero {
   position: relative;
   min-height: 75vh;
+  min-height: 75svh;
   display: flex;
-  align-items: center;
+  /* in alto e non centrato: la scritta a blocchi si aggancia alla griglia dello sfondo,
+     così resta sempre alla stessa distanza dalla chip */
+  align-items: flex-start;
   justify-content: center;
   overflow: hidden;
-  padding: 50px 0 60px;
+  padding: 50px 0 24px;
 }
 
 .hero-content {
@@ -210,19 +232,22 @@ const hobbies = computed(() =>
 }
 
 /* Spazio riservato alla scritta fatta di blocchi: 5 righe di lettere + margine sopra e sotto,
-   la cella della griglia vale clamp(18px, 5vw, 60px) come nello sfondo */
+   la cella della griglia vale clamp(18px, 5vw, 60px) come nello sfondo.
+   L'altezza resta di 8 celle perché lo sfondo centra la scritta in questo spazio; il margine
+   negativo riavvicina il sottotitolo, che altrimenti resterebbe staccato di quasi 3 righe vuote. */
 .hero-word {
   display: block;
-  height: calc(8 * clamp(18px, 5vw, 60px));
+  height: calc(8 * var(--cell));
+  margin-bottom: calc(-1.5 * var(--cell));
 }
 
 
 
 .hero-subtitle {
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 620px;
-  margin: 0 auto 40px;
+  margin: 0 auto 8px;
   line-height: 1.8;
 }
 
@@ -233,7 +258,8 @@ const hobbies = computed(() =>
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 24px 0 32px;
+  min-height: var(--tap);
+  padding: 16px 24px 32px;
   cursor: pointer;
   user-select: none;
   transition: opacity 0.3s;
@@ -244,7 +270,7 @@ const hobbies = computed(() =>
 }
 
 .scroll-label {
-  font-size: 0.82rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--gold);
   letter-spacing: 2px;
@@ -303,25 +329,37 @@ const hobbies = computed(() =>
   border-radius: 14px;
   color: var(--gold);
   font-size: 1.3rem;
-  transition: all 0.3s var(--ease-smooth);
 }
 
-.about-card:hover .about-icon-wrapper {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--bg-primary);
-  transform: rotate(-5deg) scale(1.05);
+/* Tecnologie del percorso */
+.about-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.about-stack-item {
+  padding: 4px 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--gold);
+  background: var(--gold-subtle);
+  border: 1px solid var(--border-gold);
+  border-radius: 100px;
 }
 
 .about-card-title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-white);
 }
 
 .about-card-text {
+  max-width: var(--measure);
   color: var(--text-secondary);
-  font-size: 0.96rem;
+  font-size: var(--text-base);
   line-height: 1.8;
 }
 
@@ -340,7 +378,7 @@ const hobbies = computed(() =>
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 28px 32px;
+  padding: var(--space-card);
 }
 
 .activity-content {
@@ -349,7 +387,7 @@ const hobbies = computed(() =>
 
 .activity-title {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 8px;
@@ -357,7 +395,7 @@ const hobbies = computed(() =>
 
 .activity-text {
   color: var(--text-secondary);
-  font-size: 0.93rem;
+  font-size: var(--text-base);
   line-height: 1.7;
 }
 
@@ -372,13 +410,8 @@ const hobbies = computed(() =>
   color: var(--gold);
   font-size: 1.2rem;
   flex-shrink: 0;
-  transition: all 0.3s var(--ease-smooth);
 }
 
-.activity-item:hover .activity-icon {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--bg-primary);
-}
 
 /* ============ HOBBIES ============ */
 .hobbies-grid {
@@ -389,23 +422,21 @@ const hobbies = computed(() =>
 
 .hobby-card {
   text-align: center;
-  padding: 36px 28px;
+  padding: var(--space-card);
 }
 
-.hobby-emoji {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  display: inline-block;
-  transition: transform 0.4s var(--ease-bounce);
+.hobby-icon {
+  margin: 0 auto 16px;
 }
 
-.hobby-card:hover .hobby-emoji {
-  transform: scale(1.2) rotate(-5deg);
+.hobby-icon svg {
+  width: 26px;
+  height: 26px;
 }
 
 .hobby-title {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 12px;
@@ -413,7 +444,7 @@ const hobbies = computed(() =>
 
 .hobby-text {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   line-height: 1.7;
 }
 
@@ -435,15 +466,10 @@ const hobbies = computed(() =>
   flex-wrap: wrap;
 }
 
-.contact-card:hover .about-icon-wrapper {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--bg-primary);
-  transform: rotate(-5deg) scale(1.05);
-}
 
 .contact-email-link {
   font-family: var(--font-display);
-  font-size: clamp(1.3rem, 3.5vw, 2rem);
+  font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--text-white);
   overflow-wrap: anywhere;
@@ -457,8 +483,8 @@ const hobbies = computed(() =>
 }
 
 .btn-copy {
-  width: 36px;
-  height: 36px;
+  width: var(--tap);
+  height: var(--tap);
   padding: 0;
   justify-content: center;
   flex-shrink: 0;
@@ -500,14 +526,15 @@ const hobbies = computed(() =>
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
+  /* su telefono l'altezza minima lasciava mezzo schermo vuoto sopra "Scorri" */
   .hero {
-    padding: 60px 0 40px;
+    min-height: 0;
+    padding: 60px 0 16px;
   }
 
   .activity-item {
     flex-direction: column;
     text-align: center;
-    padding: 24px;
   }
 
   .social-link {

@@ -1,7 +1,7 @@
 // Genera il CV in PDF (italiano e inglese) dai contenuti della pagina Curriculum.
 // Uso: npm run cv  (dopo npm run build). Scrive dist/cv/NisiixDev-CV-it.pdf e -en.pdf.
 // Richiede Playwright con Chromium (nel deploy: npx playwright install chromium).
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { createPinia, setActivePinia } from 'pinia'
@@ -17,6 +17,19 @@ const SITE = 'nisiix.github.io/NisiixDev'
 setActivePinia(createPinia())
 const curriculum = useCurriculumStore()
 const contatti = useContattiStore()
+
+// Stessi font del sito, letti dai pacchetti installati (nessuna richiesta a Google Fonts)
+const fontData = (pkg, file) =>
+  readFileSync(join(root, 'node_modules', '@fontsource-variable', pkg, 'files', file)).toString('base64')
+const FONT_FACES = [
+  ['Inter Variable', 'inter', 'inter-latin-wght-normal.woff2', '100 900'],
+  ['Outfit Variable', 'outfit', 'outfit-latin-wght-normal.woff2', '100 900']
+]
+  .map(
+    ([family, pkg, file, weight]) =>
+      `@font-face { font-family: '${family}'; font-weight: ${weight}; font-style: normal; src: url(data:font/woff2;base64,${fontData(pkg, file)}) format('woff2'); }`
+  )
+  .join('\n')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const tr = (v, lang) => (v && typeof v === 'object' ? v[lang] ?? v.it : v)
@@ -48,19 +61,19 @@ function html(lang) {
 <head>
 <meta charset="utf-8">
 <title>Nisiix Dev — ${esc(m.nav.curriculum)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
+${FONT_FACES}
   @page { size: A4; margin: 16mm 16mm 18mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Inter, Arial, sans-serif; color: #1f1d19; font-size: 10pt; line-height: 1.55; }
+  body { font-family: 'Inter Variable', Arial, sans-serif; color: #1f1d19; font-size: 10pt; line-height: 1.55; }
   a { color: inherit; text-decoration: none; }
   header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
     padding-bottom: 14px; border-bottom: 2px solid #b08a1e; margin-bottom: 18px; }
-  .name { display: flex; align-items: center; gap: 8px; font-family: Outfit, Arial, sans-serif; font-weight: 800; font-size: 26pt; line-height: 1; }
+  .name { display: flex; align-items: center; gap: 8px; font-family: 'Outfit Variable', Arial, sans-serif; font-weight: 800; font-size: 26pt; line-height: 1; }
   .logo { background: linear-gradient(135deg, #d4af37, #b8962e); color: #0a0a0a; padding: 4px 12px; border-radius: 8px; }
   .role { margin-top: 8px; font-size: 12pt; font-weight: 600; color: #8f6f12; letter-spacing: 0.3px; }
   .contacts { text-align: right; font-size: 9pt; color: #4a4740; line-height: 1.7; }
-  h2 { font-family: Outfit, Arial, sans-serif; font-size: 13pt; font-weight: 800; color: #121110;
+  h2 { font-family: 'Outfit Variable', Arial, sans-serif; font-size: 13pt; font-weight: 800; color: #121110;
     margin: 18px 0 8px; display: flex; align-items: center; gap: 8px; }
   h2::before { content: ''; width: 14px; height: 14px; border-radius: 3px; background: linear-gradient(135deg, #d4af37, #8f6f12); }
   p { color: #33312b; }

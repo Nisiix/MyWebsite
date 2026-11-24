@@ -126,7 +126,7 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 
 .category-title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-white);
 }
@@ -151,14 +151,14 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 
 .skill-name {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-white);
 }
 
 .skill-description {
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--text-base);
   line-height: 1.7;
 }
 
@@ -187,7 +187,7 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 
 .spec-title {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 12px;
@@ -195,7 +195,7 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 
 .spec-text {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   line-height: 1.8;
 }
 
@@ -206,7 +206,7 @@ const cvCurrent = computed(() => cvUrl(locale.value))
 
 .tech-stack-title {
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 24px;
@@ -225,16 +225,16 @@ const cvCurrent = computed(() => cvUrl(locale.value))
   border: 1px solid var(--border-subtle);
   border-radius: 100px;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 500;
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .tech-badge:hover {
   border-color: var(--border-gold);
   color: var(--gold);
   background: var(--gold-subtle);
-  transform: translateY(-2px);
 }
 
 /* Responsive */

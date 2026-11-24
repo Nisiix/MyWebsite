@@ -4,7 +4,9 @@
   <div class="app-wrapper">
     <NavBar />
     <main id="main-content" class="main-content" tabindex="-1">
-      <RouterView v-slot="{ Component }">
+      <!-- Con le View Transitions del browser il cambio pagina lo anima il browser stesso -->
+      <RouterView v-if="supportsViewTransitions" />
+      <RouterView v-else v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
         </transition>
@@ -18,6 +20,7 @@
 import NavBar from '@/components/NavBar.vue'
 import FooterBar from '@/components/FooterBar.vue'
 import ScrollBackground from '@/components/ScrollBackground.vue'
+import { supportsViewTransitions } from '@/router/viewTransition'
 
 // Porta il focus della tastiera all'inizio del contenuto della pagina
 function skipToContent() {
@@ -32,6 +35,7 @@ function skipToContent() {
   position: relative;
   z-index: 1;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -40,6 +44,7 @@ function skipToContent() {
   flex: 1;
   outline: none;
   padding-top: 80px; /* navbar height */
+  view-transition-name: page;
 }
 
 /* Page transition */

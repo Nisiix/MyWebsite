@@ -25,6 +25,7 @@
 <style scoped>
 .notfound-hero {
   min-height: calc(100vh - 80px);
+  min-height: calc(100svh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,12 +42,12 @@
 /* Stesso spazio della scritta in home: 5 righe di blocchi + margine */
 .notfound-word {
   display: block;
-  height: calc(8 * clamp(18px, 5vw, 60px));
+  height: calc(8 * var(--cell));
 }
 
 .notfound-heading {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: var(--text-2xl);
   font-weight: 800;
   color: var(--text-white);
   margin-bottom: 12px;

@@ -128,12 +128,13 @@ const filteredProjects = computed(() =>
 .filter-chip {
   padding: 8px 18px;
   color: var(--text-secondary);
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: 100px;
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .filter-chip:hover {
@@ -180,10 +181,6 @@ const filteredProjects = computed(() =>
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.project-card:hover {
-  transform: translateY(-6px);
 }
 
 /* Preview */
@@ -264,7 +261,8 @@ const filteredProjects = computed(() =>
   border-radius: 20px;
   color: var(--accent, var(--gold));
   font-size: 2rem;
-  transition: all 0.4s var(--ease-smooth);
+  transition: 0.4s var(--ease-smooth);
+  transition-property: var(--transition-props);
   z-index: 1;
 }
 
@@ -284,7 +282,7 @@ const filteredProjects = computed(() =>
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 100px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.5px;
@@ -301,7 +299,7 @@ const filteredProjects = computed(() =>
 
 .project-name {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 12px;
@@ -309,7 +307,7 @@ const filteredProjects = computed(() =>
 
 .project-description {
   color: var(--text-secondary);
-  font-size: 0.92rem;
+  font-size: var(--text-base);
   line-height: 1.7;
   margin-bottom: 20px;
   flex: 1;
@@ -329,9 +327,10 @@ const filteredProjects = computed(() =>
   border: 1px solid var(--border-subtle);
   border-radius: 100px;
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   font-weight: 500;
-  transition: all 0.3s;
+  transition: 0.3s;
+  transition-property: var(--transition-props);
 }
 
 .project-card:hover .project-tag {
@@ -356,12 +355,13 @@ const filteredProjects = computed(() =>
   background: transparent;
   color: var(--accent, var(--gold));
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   letter-spacing: 0.3px;
   border: 1px solid color-mix(in srgb, var(--accent, var(--gold)) 35%, transparent);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
   align-self: flex-start;
   font-family: var(--font-body);
 }

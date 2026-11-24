@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, START_LOCATION } from 'vue-router'
+import { installViewTransitions, supportsViewTransitions } from './viewTransition'
 import { watch } from 'vue'
 import { t, locale, LOCALES, DEFAULT_LOCALE, localeFromPath, localePath, stripLocale, savedLocaleChoice } from '@/i18n'
 import HomeView from '@/views/HomeView.vue'
@@ -41,7 +42,8 @@ const router = createRouter({
       if (from.path === to.path) return target
       return new Promise((resolve) => setTimeout(() => resolve(target), 450))
     }
-    return { top: 0, behavior: 'smooth' }
+    // con le View Transitions la nuova pagina deve partire già in cima, senza scorrere sotto l'animazione
+    return { top: 0, behavior: supportsViewTransitions ? 'auto' : 'smooth' }
   }
 })
 
@@ -92,6 +94,7 @@ function updateHead(route) {
 }
 
 router.afterEach((to) => updateHead(to))
+installViewTransitions(router)
 watch(locale, () => updateHead(router.currentRoute.value))
 
 export default router

@@ -84,12 +84,13 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   gap: 8px;
   padding: 10px 14px;
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.5px;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .lang-toggle:hover,
@@ -132,11 +133,12 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   width: 100%;
   padding: 10px 12px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--text-md);
   font-weight: 500;
   border-radius: var(--radius-sm);
   text-align: left;
-  transition: all 0.2s var(--ease-smooth);
+  transition: 0.2s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .lang-option:hover {
@@ -150,7 +152,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 .lang-short {
   min-width: 22px;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   opacity: 0.7;
 }
@@ -169,5 +171,12 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .lang-pop-leave-to {
   opacity: 0;
   transform: translateY(-6px);
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+  .lang-toggle,
+  .lang-option {
+    min-height: var(--tap);
+  }
 }
 </style>

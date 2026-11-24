@@ -23,10 +23,11 @@ import { theme, toggleTheme } from '@/theme'
   width: 40px;
   height: 40px;
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
+  transition: 0.3s var(--ease-smooth);
+  transition-property: var(--transition-props);
 }
 
 .theme-toggle:hover {
@@ -41,5 +42,13 @@ import { theme, toggleTheme } from '@/theme'
 
 .theme-toggle:hover i {
   transform: rotate(-25deg);
+}
+
+/* sui touch screen l'area da toccare è di almeno 44px */
+@media (pointer: coarse), (max-width: 768px) {
+  .theme-toggle {
+    width: var(--tap);
+    height: var(--tap);
+  }
 }
 </style>

@@ -49,12 +49,33 @@
   color-scheme: dark;
 
   /* Typography */
-  --font-display: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: 'Outfit Variable', 'Outfit', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, sans-serif;
 
-  /* Spacing */
-  --section-padding: 100px 0;
+  /* Scala tipografica unica: le misure grandi si adattano allo schermo (clamp) */
+  --text-xs: 0.8125rem;   /* etichette, tag, badge */
+  --text-sm: 0.875rem;    /* chip, pulsanti piccoli, footer */
+  --text-md: 0.9375rem;   /* pulsanti, voci di menu */
+  --text-base: 1rem;      /* testo dei paragrafi */
+  --text-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);      /* sottotitoli, titoli piccoli */
+  --text-xl: clamp(1.1875rem, 1.05rem + 0.6vw, 1.4375rem);   /* titoli delle card */
+  --text-2xl: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem);
+  --text-3xl: clamp(2rem, 1.4rem + 3vw, 3rem);               /* titoli di sezione */
+  --text-4xl: clamp(2.25rem, 1.5rem + 3.75vw, 3.5rem);       /* titoli di pagina */
+
+  /* Spaziature */
+  --space-card: clamp(22px, 1rem + 1.2vw, 32px);
+  --section-padding: clamp(64px, 4rem + 4vw, 112px) 0;
+  /* cella della griglia a blocchi dello sfondo (come cellSize in ScrollBackground) */
+  --cell: clamp(18px, 5vw, 60px);
+
+  /* proprietà animate da pulsanti, link e card (mai "all") */
+  --transition-props: background-color, border-color, color, box-shadow, transform, opacity;
   --container-max: 1200px;
+  --measure: 68ch; /* lunghezza massima delle righe di testo */
+
+  /* Area minima da toccare su mobile */
+  --tap: 44px;
 
   /* Transitions */
   --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -147,6 +168,16 @@ ul, ol {
   list-style: none;
 }
 
+/* titoli che vanno a capo in modo bilanciato, paragrafi senza parole orfane */
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 img {
   max-width: 100%;
   display: block;
@@ -196,7 +227,7 @@ button {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: var(--text-3xl);
   font-weight: 800;
   color: var(--text-white);
   margin-bottom: 12px;
@@ -284,7 +315,7 @@ button {
 }
 
 .section-subtitle {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   margin-bottom: 48px;
   max-width: 600px;
@@ -306,8 +337,12 @@ button {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 32px;
-  transition: all 0.4s var(--ease-smooth);
+  padding: var(--space-card);
+  transition:
+    background-color 0.4s var(--ease-smooth),
+    border-color 0.4s var(--ease-smooth),
+    box-shadow 0.4s var(--ease-smooth),
+    transform 0.4s var(--ease-smooth);
   position: relative;
   overflow: hidden;
 }
@@ -322,7 +357,13 @@ button {
   background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
 }
 
+/* Le card informative reagiscono appena al mouse; il sollevamento dorato è solo per quelle cliccabili */
 .glass-card:hover {
+  border-color: var(--border-medium);
+}
+
+.glass-card.is-link:hover,
+a.glass-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-gold);
   box-shadow: var(--shadow-gold);
@@ -338,10 +379,13 @@ button {
   background: linear-gradient(135deg, var(--gold), var(--gold-dark));
   color: var(--bg-primary);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
+  transition:
+    background-color 0.3s var(--ease-smooth),
+    box-shadow 0.3s var(--ease-smooth),
+    transform 0.3s var(--ease-smooth);
   letter-spacing: 0.3px;
 }
 
@@ -359,10 +403,15 @@ button {
   background: transparent;
   color: var(--gold);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   border: 1px solid var(--border-gold);
   border-radius: var(--radius-sm);
-  transition: all 0.3s var(--ease-smooth);
+  transition:
+    background-color 0.3s var(--ease-smooth),
+    border-color 0.3s var(--ease-smooth),
+    color 0.3s var(--ease-smooth),
+    box-shadow 0.3s var(--ease-smooth),
+    transform 0.3s var(--ease-smooth);
   letter-spacing: 0.3px;
 }
 
@@ -376,7 +425,7 @@ button {
 /* Smaller variant, same shape (copy, social links) */
 .btn-sm {
   padding: 8px 16px;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 /* ---------- Page hero (Curriculum, Progetti) ---------- */
@@ -396,7 +445,7 @@ button {
   border: 1px solid var(--border-gold);
   border-radius: 100px;
   color: var(--gold);
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   margin-bottom: 24px;
   letter-spacing: 0.5px;
@@ -408,7 +457,7 @@ button {
 
 .page-title {
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-size: var(--text-4xl);
   font-weight: 900;
   color: var(--text-white);
   margin-bottom: 16px;
@@ -416,7 +465,7 @@ button {
 }
 
 .page-subtitle {
-  font-size: 1.05rem;
+  font-size: var(--text-lg);
   color: var(--text-secondary);
   max-width: 650px;
   margin: 0 auto;
@@ -471,16 +520,13 @@ button {
 
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
-  .section {
-    padding: 60px 0;
-  }
-
   .container {
     padding: 0 16px;
   }
 
-  .glass-card {
-    padding: 24px;
+  /* pulsanti piccoli comodi da toccare */
+  .btn-sm {
+    min-height: var(--tap);
   }
 }
 
@@ -547,6 +593,44 @@ button {
   transform: translateY(0) scale(0.98);
 }
 
+/* ---------- Cambio pagina (View Transitions) ---------- */
+/* Si anima solo il contenuto della pagina: barra, sfondo a blocchi e footer restano fermi */
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-new(navbar) {
+  animation: none;
+}
+
+/* la barra cambia subito (voce attiva), senza mostrare quella vecchia sotto */
+::view-transition-old(navbar) {
+  display: none;
+}
+
+/* la barra ha un suo gruppo, disegnato sopra il contenuto che cambia */
+.navbar {
+  view-transition-name: navbar;
+}
+
+::view-transition-group(navbar) {
+  z-index: 1;
+}
+
+::view-transition-old(page) {
+  animation: page-out 0.2s ease-in both;
+}
+
+::view-transition-new(page) {
+  animation: page-in 0.4s var(--ease-smooth) both;
+}
+
+@keyframes page-out {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
 /* ---------- Accessibilità ---------- */
 /* Testo solo per screen reader */
 .sr-only {
@@ -604,5 +688,11 @@ button {
   .reveal:not(.is-revealed) {
     opacity: 1;
     transform: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import 'primeicons/primeicons.css'
+// Font ospitati sul sito (niente richieste a Google Fonts): più veloci e senza invio di dati a terzi
+import '@fontsource-variable/inter'
+import '@fontsource-variable/outfit'
 
 import App from './App.vue'
 import router from './router'
