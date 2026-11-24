@@ -8,6 +8,8 @@
   -->
   <div class="scroll-bg" aria-hidden="true">
     <canvas ref="canvas" class="bg-canvas"></canvas>
+    <!-- robottino 3D che vola sopra la griglia (vedi bgFlyer3d.js) -->
+    <div ref="flyerLayer" class="flyer-layer"></div>
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
     <div class="bg-glow bg-glow-3"></div>
@@ -24,6 +26,7 @@ import { createArmy } from './bgSnap'
 import { snap, snapReady } from '@/stores/snap'
 
 const canvas = ref(null)
+const flyerLayer = ref(null)
 const route = useRoute()
 
 // ---- Parametri ----
@@ -580,6 +583,7 @@ let resizeObserver = null
 
 onMounted(() => {
   ctx = canvas.value.getContext('2d')
+  critters.mount(flyerLayer.value)
   resize()
   tick()
   window.addEventListener('scroll', schedule, { passive: true })
@@ -645,6 +649,7 @@ onUnmounted(() => {
   window.removeEventListener('pointermove', onPointerMove)
   window.removeEventListener('pointerout', onPointerOut)
   resizeObserver?.disconnect()
+  critters.dispose()
 })
 </script>
 
@@ -663,6 +668,27 @@ onUnmounted(() => {
   inset: 0;
   mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
   -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
+}
+
+/* Livello del robottino 3D: stessa sfumatura ai bordi della griglia */
+.flyer-layer {
+  position: absolute;
+  inset: 0;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
+}
+
+.flyer-layer :deep(.flyer-3d) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.flyer-layer :deep(.flyer-fallback) {
+  object-fit: contain;
 }
 
 /* Bagliori: attraversano lo schermo mentre si scorre, ognuno con traiettoria propria */
