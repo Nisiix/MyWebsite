@@ -1,5 +1,5 @@
 <template>
-  <div class="home-page">
+  <div ref="homeRoot" class="home-page">
     <!-- ============ HERO ============ -->
     <section class="hero" id="hero-section">
 
@@ -145,8 +145,13 @@ import { ref, computed } from 'vue'
 import { useContattiStore } from '@/stores/contatti'
 import { t } from '@/i18n'
 import SnapChip from '@/components/SnapChip.vue'
+import { useLetterFall } from '@/composables/useLetterFall'
 
 const contatti = useContattiStore()
+
+// "Schiocca le dita": metà delle lettere dei testi cade, "Sacrifica Iron Man" le riporta su
+const homeRoot = ref(null)
+useLetterFall(homeRoot)
 const visibleSocials = computed(() => contatti.socials.filter((s) => s.url))
 
 const copied = ref(false)

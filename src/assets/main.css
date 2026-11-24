@@ -220,6 +220,35 @@ button {
   white-space: nowrap;
 }
 
+/* ---- "Schiocca le dita": lettere dei testi che cadono e risalgono (useLetterFall) ---- */
+.fall-w {
+  white-space: nowrap;
+}
+.fall-l {
+  display: inline-block;
+}
+.fall-l.is-falling {
+  /* accelera come un oggetto che cade, con la stessa gravità dei blocchi */
+  animation: letter-fall var(--fall-dur, 0.7s) cubic-bezier(0.55, 0.085, 0.68, 0.53) var(--fall-delay, 0s) forwards;
+}
+.fall-l.is-gone {
+  visibility: hidden;
+}
+.fall-l.is-rising {
+  /* stesso movimento al contrario: parte veloce dal basso e frena al suo posto */
+  animation: letter-rise var(--fall-dur, 0.7s) cubic-bezier(0.32, 0.47, 0.45, 0.915) var(--fall-delay, 0s) both;
+}
+@keyframes letter-fall {
+  from { transform: translateY(0) rotate(0); opacity: 1; }
+  80% { opacity: 1; }
+  to { transform: translateY(var(--fall, 100vh)) rotate(var(--fall-rot, 30deg)); opacity: 0; }
+}
+@keyframes letter-rise {
+  from { transform: translateY(var(--fall, 100vh)) rotate(var(--fall-rot, 30deg)); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
 /* ---- Titoli che si compongono ruotando, lettera per lettera (v-spin-title) ---- */
 .spin-title .spin-letter {
   display: inline-block;

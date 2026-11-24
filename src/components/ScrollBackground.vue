@@ -22,7 +22,6 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
 import { createFlyer } from './bgFlyer'
-import { createArmy } from './bgSnap'
 import { preloadNovaWhenIdle } from './novaModel'
 import { snap, snapReady } from '@/stores/snap'
 
@@ -199,11 +198,11 @@ let hoveredLetter = -1
 let lastPointer = null // ultima posizione del mouse nelle coordinate della griglia
 let lastFrame = 0
 
-// ---- "Schiocca le dita" (pulsante in home, vedi bgSnap.js) ----
-// I blocchi della scritta cadono fuori dallo schermo e un robottino per blocco prende il
-// loro posto; al ritorno i blocchi risalgono con il movimento inverso.
+// ---- "Schiocca le dita" (pulsante in home) ----
+// I blocchi della scritta cadono fuori dallo schermo; al ritorno risalgono con il movimento
+// inverso. Le lettere dei testi della home cadono a parte (vedi src/snap/letterFall.js).
 const GRAVITY = 2400 // px/s²
-const army = createArmy()
+let readyTimer = 0
 // tau: tempo della caduta in secondi (0 = scritta al suo posto, end = tutti i blocchi fuori)
 const wordFx = { mode: 'none', cells: null, end: 0, tau0: 0, dir: 1, start: 0 }
 
@@ -225,10 +224,6 @@ function startFall(now) {
   }
   Object.assign(wordFx, { mode: 'falling', cells, end, tau0: 0, dir: 1, start: now })
 }
-
-const RISE_GONE = 0.8 // quota di robottini usciti prima che i blocchi risalgano
-const RISE_MAX = 4000 // in ogni caso non oltre questo tempo (ms)
-let riseAt = 0
 
 function startRise(now) {
   if (wordFx.mode === 'none') return
@@ -257,25 +252,6 @@ function fxBlocks(now, blocks, cx, cy) {
     blocks.push({ x, y, lift: c.lift, dist: Math.hypot(x + CELL / 2 - cx, y + CELL / 2 - cy), spin: null })
   }
   return true
-}
-
-// Celle libere per gli robottini: niente blocchi alzati (la scritta in quel momento non c'è)
-function isCellFreeForArmy(col, row) {
-  const key = `${col}:${row}`
-  return (lifts.get(key) ?? 0) < 0.003 && randomLift(col, row, window.scrollY) === 0
-}
-
-function makeView() {
-  return {
-    cols: Math.floor(width / CELL),
-    minRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.ceil(80 / CELL),
-    maxRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.floor(height / CELL) - 1,
-    cell: CELL,
-    width,
-    height,
-    gridScroll: window.scrollY * PARALLAX,
-    light: theme.value === 'light'
-  }
 }
 
 // Robottino che vola nello sfondo della home (vedi bgFlyer.js)
@@ -331,7 +307,7 @@ function startSpin(index, dir) {
 function onPointerMove(e) {
   if (e.pointerType !== 'mouse' || !wordLetters.length) return
   // con la scritta caduta le lettere girano solo quando gli robottini l'hanno ricomposta
-  if (wordFx.mode !== 'none' && !army.assembled()) return
+  if (wordFx.mode !== 'none') return
   const x = e.clientX
   const y = e.clientY + window.scrollY * PARALLAX
   const from = lastPointer ?? { x, y }
@@ -391,7 +367,7 @@ function draw() {
   // tra un battito e l'altro (pagina ferma, nessun personaggino) passa fino a un secondo
   const critterDt = Math.min(now - (critterFrame || now), 1200) / 1000
   critterFrame = now
-  const snapBusy = wordFx.mode !== 'none' || army.active()
+  const snapBusy = wordFx.mode !== 'none'
   const view = {
     active: route.name === 'home' && !snapBusy,
     width,
@@ -408,22 +384,6 @@ function draw() {
   const angles = wordLetters.map((l, i) => stepSpin(l, i, dt))
   if (wordLetters.some((l) => l.spin)) animating = true
   else lastFrame = 0
-  // Esercito di robottini di "Schiocca le dita": ruotano con la propria lettera
-  if (army.update(dt || 1 / 60, makeView(), isCellFreeForArmy)) animating = true
-  snapReady.value = army.assembled()
-  // i blocchi risalgono solo quando gli robottini sono quasi tutti usciti
-  if (riseAt && (army.goneRatio() >= RISE_GONE || now - riseAt > RISE_MAX)) {
-    riseAt = 0
-    startRise(now)
-  }
-  if (riseAt) animating = true
-  army.draw(ctx, makeView(), (col, row) => {
-    const cell = wordCells?.get(`${col}:${row}`)
-    const angle = cell ? angles[cell.letter] : 0
-    if (!angle) return null
-    const l = wordLetters[cell.letter]
-    return { angle, axis: l.col + l.w / 2 }
-  })
 
   const blocks = []
   const seen = new Set()
@@ -587,9 +547,8 @@ let resizeObserver = null
 onMounted(() => {
   ctx = canvas.value.getContext('2d')
   critters.mount(flyerLayer.value)
-  army.mount(flyerLayer.value)
   // il personaggio 3D si scarica quando la pagina è già mostrata e il browser è libero
-  if (route.name === 'home') preloadNovaWhenIdle(() => army.prepare())
+  if (route.name === 'home') preloadNovaWhenIdle()
   resize()
   tick()
   window.addEventListener('scroll', schedule, { passive: true })
@@ -612,21 +571,23 @@ onMounted(() => {
   }, 1000)
 })
 
-// Pulsante "Schiocca le dita": via i blocchi ed entrano gli robottini, o il contrario
+// Pulsante "Schiocca le dita": via i blocchi, o il contrario. "Sacrifica Iron Man" diventa
+// disponibile poco dopo che l'ultimo blocco è uscito dallo schermo.
 watch(snap, ({ mode, instant }) => {
   const now = performance.now()
+  clearTimeout(readyTimer)
+  snapReady.value = false
   if (mode === 'snapped') {
-    if (!wordCells) return
-    riseAt = 0
+    if (!wordCells) {
+      snapReady.value = true
+      return
+    }
     startFall(now)
-    army.start([...wordCells.keys()].map((k) => k.split(':').map(Number)), makeView())
+    readyTimer = setTimeout(() => (snapReady.value = true), wordFx.end * 1000 + 600)
   } else if (instant) {
-    riseAt = 0
     wordFx.mode = 'none'
-    army.clear()
   } else {
-    riseAt = now
-    army.goHome()
+    startRise(now)
   }
   schedule()
 })
@@ -656,7 +617,7 @@ onUnmounted(() => {
   window.removeEventListener('pointerout', onPointerOut)
   resizeObserver?.disconnect()
   critters.dispose()
-  army.dispose()
+  clearTimeout(readyTimer)
 })
 </script>
 
@@ -683,15 +644,6 @@ onUnmounted(() => {
   inset: 0;
   mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
   -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
-}
-
-.flyer-layer :deep(.army-3d) {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: none;
-  pointer-events: none;
 }
 
 .flyer-layer :deep(.flyer-3d) {
