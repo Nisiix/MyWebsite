@@ -27,13 +27,6 @@ export const useCurriculumStore = defineStore('curriculum', () => {
         { name: 'Express.js', level: 60, description: { it: 'API RESTful, middleware personalizzati, autenticazione JWT e integrazione database.', en: 'RESTful APIs, custom middleware, JWT authentication and database integration.' } },
         { name: 'Java + Netbeans', level: 60, description: { it: 'Sviluppo applicazioni enterprise, servlet, integrazione con database relazionali e sviluppo di servizi backend.', en: 'Enterprise applications, servlets, relational database integration and backend services.' } }
       ]
-    },
-    {
-      category: { it: 'Design e prototipazione', en: 'Design and prototyping' },
-      icon: 'pi pi-palette',
-      items: [
-        { name: 'Figma', level: 60, description: { it: 'Prototipazione UI/UX, design system, wireframing e collaborazione con team di sviluppo.', en: 'UI/UX prototyping, design systems, wireframing and collaboration with development teams.' } }
-      ]
     }
   ])
 

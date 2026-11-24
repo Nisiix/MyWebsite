@@ -40,7 +40,6 @@
             >
               <div class="skill-top">
                 <h3 class="skill-name">{{ skill.name }}</h3>
-                <span class="skill-percentage gold-text">{{ skill.level }}%</span>
               </div>
 
               <div class="skill-bar-track">
@@ -149,12 +148,6 @@ const techStack = ref([
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-white);
-}
-
-.skill-percentage {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 800;
 }
 
 .skill-bar-track {
