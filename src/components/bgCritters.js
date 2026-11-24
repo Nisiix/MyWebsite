@@ -2,7 +2,7 @@
 // Entra da un bordo laterale, si muove da una cella all'altra evitando le celle occupate
 // (scritta, blocchi alzati), ogni tanto cambia strada, poi esce dal bordo più vicino.
 
-const COLOR = { body: '#ffd23f', dark: '#c99700' } // giallo
+const COLOR = { body: '#ffd23f', dark: '#c99700', light: '#ffe066', outline: ['#6b5200', '#3a2c00'] } // giallo
 const DIRS = [
   [1, 0],
   [-1, 0],
@@ -138,7 +138,7 @@ export function drawCritter(ctx, x, y, cell, c, clock, light) {
   const look = dy !== 0 ? 0 : 1 // di fronte quando va su o giù
   const walk = c.idle ? 0 : Math.sin(clock * 14 + c.life)
   const hop = Math.abs(walk) * u * 0.1
-  const outline = light ? '#6b5200' : '#3a2c00'
+  const outline = (c.color.outline || ['#6b5200', '#3a2c00'])[light ? 0 : 1]
   const cream = '#fff3c4'
   const ink = '#1a1408'
   const ellipse = (ex, ey, rx, ry, fill, stroke = true) => {
@@ -190,7 +190,7 @@ export function drawCritter(ctx, x, y, cell, c, clock, light) {
   }
   // testa
   const headGrad = ctx.createLinearGradient(0, -u, 0, u * 0.3)
-  headGrad.addColorStop(0, '#ffe066')
+  headGrad.addColorStop(0, c.color.light || '#ffe066')
   headGrad.addColorStop(1, c.color.body)
   ellipse(0, -u * 0.12, u * 0.78, u * 0.66, headGrad)
 

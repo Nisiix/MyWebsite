@@ -2,7 +2,8 @@
   <button
     type="button"
     class="snap-chip"
-    :class="{ cooling }"
+    :class="{ cooling, waiting }"
+    :disabled="waiting"
     :aria-label="labels[current]"
     :aria-pressed="current === 'sacrifice'"
     @pointerenter="onEnter"
@@ -14,13 +15,13 @@
     <span class="snap-inner" :style="{ transform: `rotateY(${turns * 180}deg)` }">
       <!-- tutte le etichette invisibili: danno al pulsante la larghezza della più lunga -->
       <span v-for="k in KINDS" :key="'s' + k" class="snap-face snap-sizer" aria-hidden="true">
-        <i :class="['pi', ICONS[k]]"></i><span>{{ labels[k] }}</span>
+        <i v-if="ICONS[k]" :class="['pi', ICONS[k]]"></i><span>{{ labels[k] }}</span>
       </span>
       <span class="snap-face front" :class="'is-' + faces[0]" aria-hidden="true">
-        <i :class="['pi', ICONS[faces[0]]]"></i><span>{{ labels[faces[0]] }}</span>
+        <i v-if="ICONS[faces[0]]" :class="['pi', ICONS[faces[0]]]"></i><span>{{ labels[faces[0]] }}</span>
       </span>
       <span class="snap-face back" :class="'is-' + faces[1]" aria-hidden="true">
-        <i :class="['pi', ICONS[faces[1]]]"></i><span>{{ labels[faces[1]] }}</span>
+        <i v-if="ICONS[faces[1]]" :class="['pi', ICONS[faces[1]]]"></i><span>{{ labels[faces[1]] }}</span>
       </span>
     </span>
   </button>
@@ -29,10 +30,10 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import { t } from '@/i18n'
-import { setSnap } from '@/stores/snap'
+import { setSnap, snapReady } from '@/stores/snap'
 
 const KINDS = ['chip', 'snap', 'sacrifice']
-const ICONS = { chip: 'pi-code', snap: 'pi-bolt', sacrifice: 'pi-shield' }
+const ICONS = { chip: 'pi-code', snap: 'pi-bolt', sacrifice: null }
 const COOLDOWN = 5000
 
 const labels = computed(() => ({
@@ -48,6 +49,8 @@ const faces = ref(['chip', 'chip'])
 const cooling = ref(false)
 let coolTimer
 const current = computed(() => faces.value[turns.value % 2])
+// "Sacrifica Iron Man" si può premere solo quando ogni orsacchiotto è al suo posto
+const waiting = computed(() => current.value === 'sacrifice' && !snapReady.value)
 
 function show(kind, back = false) {
   const next = turns.value + (back ? -1 : 1)
@@ -73,6 +76,7 @@ function onLeave() {
 }
 
 function onClick() {
+  if (waiting.value) return
   if (current.value === 'snap') {
     setSnap('snapped')
     show('sacrifice')
@@ -158,15 +162,19 @@ onUnmounted(() => {
 
 /* colori ispirati all'armatura: rosso acceso e oro */
 .is-sacrifice {
+  transition: filter 0.4s, box-shadow 0.4s;
   background: linear-gradient(135deg, #8e0e0e, #c8231c 50%, #8e0e0e);
   border-color: #f2c14e;
   color: #ffe08a;
   box-shadow: 0 0 18px rgba(214, 40, 30, 0.55), inset 0 0 0 2px rgba(242, 193, 78, 0.35);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
-.is-sacrifice i {
-  color: #7fe7ff;
-  filter: drop-shadow(0 0 4px #7fe7ff);
+.snap-chip.waiting {
+  cursor: progress;
+}
+.snap-chip.waiting .is-sacrifice {
+  filter: saturate(0.45) brightness(0.85);
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

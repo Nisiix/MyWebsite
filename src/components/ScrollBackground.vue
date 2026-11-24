@@ -21,7 +21,7 @@ import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
 import { createCritters } from './bgCritters'
 import { createArmy } from './bgSnap'
-import { snap } from '@/stores/snap'
+import { snap, snapReady } from '@/stores/snap'
 
 const canvas = ref(null)
 const route = useRoute()
@@ -222,6 +222,10 @@ function startFall(now) {
   Object.assign(wordFx, { mode: 'falling', cells, end, tau0: 0, dir: 1, start: now })
 }
 
+const RISE_GONE = 0.8 // quota di orsacchiotti usciti prima che i blocchi risalgano
+const RISE_MAX = 4000 // in ogni caso non oltre questo tempo (ms)
+let riseAt = 0
+
 function startRise(now) {
   if (wordFx.mode === 'none') return
   const tau = Math.min(Math.max(fxTau(now), 0), wordFx.end)
@@ -405,6 +409,13 @@ function draw() {
   else lastFrame = 0
   // Esercito di orsacchiotti di "Schiocca le dita": ruotano con la propria lettera
   if (army.update(dt || 1 / 60, makeView(), isCellFreeForArmy)) animating = true
+  snapReady.value = army.assembled()
+  // i blocchi risalgono solo quando gli orsacchiotti sono quasi tutti usciti
+  if (riseAt && (army.goneRatio() >= RISE_GONE || now - riseAt > RISE_MAX)) {
+    riseAt = 0
+    startRise(now)
+  }
+  if (riseAt) animating = true
   army.draw(ctx, makeView(), (col, row) => {
     const cell = wordCells?.get(`${col}:${row}`)
     const angle = cell ? angles[cell.letter] : 0
@@ -598,13 +609,15 @@ watch(snap, ({ mode, instant }) => {
   const now = performance.now()
   if (mode === 'snapped') {
     if (!wordCells) return
+    riseAt = 0
     startFall(now)
     army.start([...wordCells.keys()].map((k) => k.split(':').map(Number)), makeView())
   } else if (instant) {
+    riseAt = 0
     wordFx.mode = 'none'
     army.clear()
   } else {
-    startRise(now)
+    riseAt = now
     army.goHome()
   }
   schedule()

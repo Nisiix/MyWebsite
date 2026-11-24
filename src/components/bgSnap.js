@@ -3,7 +3,7 @@
 // e ricompongono la scritta. Al ritorno rifanno all'indietro esattamente la strada fatta.
 import { drawCritter } from './bgCritters'
 
-const COLOR = { body: '#ffd23f', dark: '#c99700' }
+const COLOR = { body: '#e53935', dark: '#9e1b1b', light: '#ff7b6b', outline: ['#5c0d0d', '#2e0505'] } // rossi
 const DIRS = [
   [1, 0],
   [-1, 0],
@@ -227,5 +227,7 @@ export function createArmy() {
   const assembled = () => mode === 'assemble' && bears.length > 0 && bears.every((b) => b.done)
   const active = () => mode !== 'idle'
 
-  return { start, goHome, update, draw, clear, assembled, active }
+  // quota di orsacchiotti già usciti dallo schermo nel ritorno (1 se non ce n'è nessuno)
+  const goneRatio = () => (bears.length ? bears.filter((b) => b.gone).length / bears.length : 1)
+  return { start, goHome, update, draw, clear, assembled, active, goneRatio }
 }
