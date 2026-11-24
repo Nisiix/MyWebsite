@@ -1,9 +1,11 @@
-// "Schiocca le dita": un orsacchiotto per ogni blocco della scritta. Entrano dai bordi
+// "Schiocca le dita": un robottino Nova Ward per ogni blocco della scritta. Entrano dai bordi
 // laterali, girano un po' a caso nella griglia, poi raggiungono ognuno la cella di un blocco
 // e ricompongono la scritta. Al ritorno rifanno all'indietro esattamente la strada fatta.
-import { drawCritter } from './bgCritters'
-
-const COLOR = { body: '#e53935', dark: '#9e1b1b', light: '#ff7b6b', outline: ['#5c0d0d', '#2e0505'] } // rossi
+// (Nel codice si chiamano ancora "bears": prima erano orsacchiotti.)
+// Il disegno 3D è in bgArmy3d.js; finché il 3D non è pronto, o senza WebGL, al loro posto
+// si disegna l'immagine statica del personaggio.
+import { createArmy3D } from './bgArmy3d'
+import { fallbackUrl } from './novaModel'
 const DIRS = [
   [1, 0],
   [-1, 0],
@@ -18,8 +20,23 @@ const WANDER = [1.2, 3] // secondi a zonzo prima di andare al proprio posto
 const rand = (a, b) => a + Math.random() * (b - a)
 const randInt = (a, b) => Math.floor(rand(a, b + 1))
 
+// verso in cui guarda il robottino per ogni direzione di marcia (0 = verso chi legge)
+const YAW = { '1,0': 1.15, '-1,0': -1.15, '0,1': 0, '0,-1': Math.PI }
+
+let fallbackImg = null
+function getFallbackImg() {
+  if (!fallbackImg) {
+    fallbackImg = new Image()
+    fallbackImg.decoding = 'async'
+    fallbackImg.src = fallbackUrl
+  }
+  return fallbackImg.complete && fallbackImg.naturalWidth ? fallbackImg : null
+}
+
 export function createArmy() {
+  const body = createArmy3D()
   let bears = []
+  let lastDraw = 0
   let mode = 'idle' // 'assemble' | 'return' | 'idle'
   let clock = 0
 
@@ -28,6 +45,8 @@ export function createArmy() {
 
   // targets: [[col, row], ...] celle dei blocchi della scritta
   function start(targets, view) {
+    body.ready() // prepara il 3D mentre i blocchi cadono
+    getFallbackImg()
     clock = 0
     mode = 'assemble'
     // gli orsacchiotti destinati alle lettere di sinistra entrano più spesso da sinistra
@@ -52,8 +71,8 @@ export function createArmy() {
           done: false,
           idle: false,
           life: rand(0, 50),
-          scale: 1,
-          color: COLOR
+          seed: rand(0, 100),
+          yaw: left ? YAW['1,0'] : YAW['-1,0']
         }
       })
   }
@@ -197,26 +216,63 @@ export function createArmy() {
     return mode !== 'idle'
   }
 
-  // angleOf(col, row) -> angolo della lettera a cui appartiene la cella (0 se ferma)
+  // angleOf(col, row) -> rotazione della lettera a cui appartiene la cella (null se ferma)
   function draw(ctx, view, angleOf) {
+    const dt = Math.min(Math.max(clock - lastDraw, 0), 0.1)
+    lastDraw = clock
+    const robots = []
     for (const b of bears) {
       if (b.gone || !b.entered) continue
       let gx = b.col + (b.tcol - b.col) * b.t
       const gy = b.row + (b.trow - b.row) * b.t
-      b.turn = 1
+      let target = YAW[b.dir.join(',')] ?? 0
       if (b.done) {
         const spin = angleOf(b.col, b.row)
         if (spin) {
           // ruota insieme alla sua lettera, attorno all'asse verticale della lettera
           gx = spin.axis + (gx + 0.5 - spin.axis) * Math.cos(spin.angle) - 0.5
-          b.turn = Math.cos(spin.angle)
-          if (Math.abs(b.turn) < 0.08) b.turn = 0.08 * Math.sign(b.turn || 1)
+          target += spin.angle
+          b.yaw = target
         }
       }
-      const x = gx * view.cell + view.cell / 2
-      const y = gy * view.cell - view.gridScroll + view.cell / 2
-      drawCritter(ctx, x, y, view.cell, b, clock, view.light)
+      // si gira con morbidezza, dalla parte più corta
+      let d = target - b.yaw
+      d = Math.atan2(Math.sin(d), Math.cos(d))
+      b.yaw += d * Math.min(1, dt * 10)
+      const moving = b.t < 1 ? 1 : 0
+      b.move = (b.move ?? 0) + (moving - (b.move ?? 0)) * Math.min(1, dt * 8)
+      robots.push({
+        x: gx * view.cell + view.cell / 2,
+        y: gy * view.cell - view.gridScroll + view.cell / 2,
+        yaw: b.yaw,
+        lean: [b.dir[0] * b.move, b.dir[1] * b.move],
+        moving: b.move,
+        seed: b.seed,
+        flip: b.dir[0] < 0
+      })
     }
+    if (!robots.length) return
+    if (body.ready() && body.draw(ctx, robots, view.cell, clock)) return
+    // immagine statica finché le viste 3D non sono pronte
+    const img = getFallbackImg()
+    if (!img) return
+    const size = view.cell * 1.25
+    for (const r of robots) {
+      ctx.save()
+      ctx.translate(r.x, r.y + Math.sin(clock * 2.4 + r.seed) * view.cell * 0.04)
+      if (r.flip) ctx.scale(-1, 1)
+      ctx.drawImage(img, -size / 2, -size / 2, size, size)
+      ctx.restore()
+    }
+  }
+
+  // prepara le viste 3D in anticipo, nei momenti liberi
+  function prepare() {
+    body.ready()
+  }
+
+  function dispose() {
+    body.dispose()
   }
 
   function clear() {
@@ -229,5 +285,5 @@ export function createArmy() {
 
   // quota di orsacchiotti già usciti dallo schermo nel ritorno (1 se non ce n'è nessuno)
   const goneRatio = () => (bears.length ? bears.filter((b) => b.gone).length / bears.length : 1)
-  return { start, goHome, update, draw, clear, assembled, active, goneRatio }
+  return { start, goHome, update, draw, clear, assembled, active, goneRatio, prepare, dispose }
 }

@@ -23,6 +23,7 @@ import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
 import { createFlyer } from './bgFlyer'
 import { createArmy } from './bgSnap'
+import { preloadNovaWhenIdle } from './novaModel'
 import { snap, snapReady } from '@/stores/snap'
 
 const canvas = ref(null)
@@ -199,7 +200,7 @@ let lastPointer = null // ultima posizione del mouse nelle coordinate della grig
 let lastFrame = 0
 
 // ---- "Schiocca le dita" (pulsante in home, vedi bgSnap.js) ----
-// I blocchi della scritta cadono fuori dallo schermo e un orsacchiotto per blocco prende il
+// I blocchi della scritta cadono fuori dallo schermo e un robottino per blocco prende il
 // loro posto; al ritorno i blocchi risalgono con il movimento inverso.
 const GRAVITY = 2400 // px/s²
 const army = createArmy()
@@ -225,7 +226,7 @@ function startFall(now) {
   Object.assign(wordFx, { mode: 'falling', cells, end, tau0: 0, dir: 1, start: now })
 }
 
-const RISE_GONE = 0.8 // quota di orsacchiotti usciti prima che i blocchi risalgano
+const RISE_GONE = 0.8 // quota di robottini usciti prima che i blocchi risalgano
 const RISE_MAX = 4000 // in ogni caso non oltre questo tempo (ms)
 let riseAt = 0
 
@@ -258,7 +259,7 @@ function fxBlocks(now, blocks, cx, cy) {
   return true
 }
 
-// Celle libere per gli orsacchiotti: niente blocchi alzati (la scritta in quel momento non c'è)
+// Celle libere per gli robottini: niente blocchi alzati (la scritta in quel momento non c'è)
 function isCellFreeForArmy(col, row) {
   const key = `${col}:${row}`
   return (lifts.get(key) ?? 0) < 0.003 && randomLift(col, row, window.scrollY) === 0
@@ -270,6 +271,8 @@ function makeView() {
     minRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.ceil(80 / CELL),
     maxRow: Math.floor((window.scrollY * PARALLAX) / CELL) + Math.floor(height / CELL) - 1,
     cell: CELL,
+    width,
+    height,
     gridScroll: window.scrollY * PARALLAX,
     light: theme.value === 'light'
   }
@@ -327,7 +330,7 @@ function startSpin(index, dir) {
 // stretta come la I può cadere tra due segnalazioni: si controlla tutto il tratto percorso.
 function onPointerMove(e) {
   if (e.pointerType !== 'mouse' || !wordLetters.length) return
-  // con la scritta caduta le lettere girano solo quando gli orsacchiotti l'hanno ricomposta
+  // con la scritta caduta le lettere girano solo quando gli robottini l'hanno ricomposta
   if (wordFx.mode !== 'none' && !army.assembled()) return
   const x = e.clientX
   const y = e.clientY + window.scrollY * PARALLAX
@@ -405,10 +408,10 @@ function draw() {
   const angles = wordLetters.map((l, i) => stepSpin(l, i, dt))
   if (wordLetters.some((l) => l.spin)) animating = true
   else lastFrame = 0
-  // Esercito di orsacchiotti di "Schiocca le dita": ruotano con la propria lettera
+  // Esercito di robottini di "Schiocca le dita": ruotano con la propria lettera
   if (army.update(dt || 1 / 60, makeView(), isCellFreeForArmy)) animating = true
   snapReady.value = army.assembled()
-  // i blocchi risalgono solo quando gli orsacchiotti sono quasi tutti usciti
+  // i blocchi risalgono solo quando gli robottini sono quasi tutti usciti
   if (riseAt && (army.goneRatio() >= RISE_GONE || now - riseAt > RISE_MAX)) {
     riseAt = 0
     startRise(now)
@@ -584,6 +587,8 @@ let resizeObserver = null
 onMounted(() => {
   ctx = canvas.value.getContext('2d')
   critters.mount(flyerLayer.value)
+  // il personaggio 3D si scarica quando la pagina è già mostrata e il browser è libero
+  if (route.name === 'home') preloadNovaWhenIdle(() => army.prepare())
   resize()
   tick()
   window.addEventListener('scroll', schedule, { passive: true })
@@ -606,7 +611,7 @@ onMounted(() => {
   }, 1000)
 })
 
-// Pulsante "Schiocca le dita": via i blocchi ed entrano gli orsacchiotti, o il contrario
+// Pulsante "Schiocca le dita": via i blocchi ed entrano gli robottini, o il contrario
 watch(snap, ({ mode, instant }) => {
   const now = performance.now()
   if (mode === 'snapped') {
@@ -650,6 +655,7 @@ onUnmounted(() => {
   window.removeEventListener('pointerout', onPointerOut)
   resizeObserver?.disconnect()
   critters.dispose()
+  army.dispose()
 })
 </script>
 

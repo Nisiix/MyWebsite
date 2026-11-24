@@ -4,13 +4,10 @@
 // Se WebGL non c'è, il modello non si carica o il contesto si perde, al suo posto vola
 // un'immagine statica del personaggio.
 
-import modelUrl from '@/assets/nova/nova-ward.glb?url'
-import fallbackUrl from '@/assets/nova/nova-ward.png'
+import { loadNova, makeRenderer, makeStage, fallbackUrl, MODEL_H, MODEL_CY } from './novaModel'
 
 const HEIGHT = 1.5 // altezza del personaggio, in celle della griglia
 const BOX = 2.6 // lato del canvas, in celle (lascia spazio a braccia e inclinazione)
-const MODEL_H = 3.45 // altezza del modello in unità del GLB
-const MODEL_CY = 1.72 // centro verticale del modello
 const MAX_DPR = 2
 
 export function createFlyer3D() {
@@ -43,41 +40,17 @@ export function createFlyer3D() {
     if (state !== 'idle' || !host) return
     state = 'loading'
     try {
-      const [three, { GLTFLoader }, { RoomEnvironment }] = await Promise.all([
-        import('three'),
-        import('three/addons/loaders/GLTFLoader.js'),
-        import('three/addons/environments/RoomEnvironment.js')
-      ])
+      const nova = await loadNova()
       if (disposed) return
-      THREE = three
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' })
-      renderer.setClearColor(0x000000, 0)
-      renderer.outputColorSpace = THREE.SRGBColorSpace
-      renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.05
+      THREE = nova.THREE
+      renderer = makeRenderer(THREE)
       canvas = renderer.domElement
       canvas.className = 'flyer-3d'
       canvas.setAttribute('aria-hidden', 'true')
       canvas.style.display = 'none'
       canvas.addEventListener('webglcontextlost', onLost)
       host.append(canvas)
-
-      scene = new THREE.Scene()
-      const pmrem = new THREE.PMREMGenerator(renderer)
-      const room = new RoomEnvironment()
-      env = pmrem.fromScene(room, 0.04)
-      scene.environment = env.texture
-      room.dispose()
-      pmrem.dispose()
-      scene.add(new THREE.HemisphereLight(0xe4f5ff, 0x48273c, 1.1))
-      const light = (color, intensity, pos) => {
-        const l = new THREE.DirectionalLight(color, intensity)
-        l.position.set(...pos)
-        scene.add(l)
-      }
-      light(0xfff1e1, 2.6, [3, 6, 5])
-      light(0x3acaff, 2.4, [-4, 3, -2])
-      light(0xff344b, 1.2, [4, 2, -4])
+      ;({ scene, env } = makeStage(THREE, nova.RoomEnvironment, renderer))
 
       // camera ortografica: il personaggio ha sempre la stessa altezza in pixel
       const half = (MODEL_H * BOX) / HEIGHT / 2
@@ -88,12 +61,8 @@ export function createFlyer3D() {
       pivot = new THREE.Group()
       scene.add(pivot)
 
-      const gltf = await new GLTFLoader().loadAsync(modelUrl)
-      if (disposed) {
-        disposeModel(gltf.scene)
-        return
-      }
-      model = gltf.scene
+      // copia del modello: geometrie e materiali restano condivisi
+      model = nova.template.clone()
       model.position.y = -MODEL_CY
       pivot.position.y = MODEL_CY
       pivot.add(model)
@@ -103,22 +72,7 @@ export function createFlyer3D() {
         nodes[name] = node
         base.set(node, node.rotation.clone())
       }
-      // armatura più rossa del GLB originale, che tende al rosa
-      const reds = { 'Crimson enamel': 0xc8101c, 'Scarlet panel': 0xe01b26, 'Deep red': 0x7e0912 }
-      model.traverse((o) => {
-        if (!o.isMesh) return
-        for (const m of [].concat(o.material)) {
-          if (reds[m.name] !== undefined) {
-            m.color.setHex(reds[m.name])
-            m.roughness = Math.min(m.roughness ?? 0.5, 0.38)
-          }
-        }
-      })
-      const mats = new Set()
-      model.traverse((o) => {
-        if (o.isMesh) for (const m of [].concat(o.material)) if (m.emissive && m.emissive.getHex() !== 0) mats.add(m)
-      })
-      glow = [...mats]
+      glow = nova.glow
       window.addEventListener('pointermove', onPointer, { passive: true })
       state = 'ready'
     } catch (err) {
@@ -302,19 +256,6 @@ export function createFlyer3D() {
     return out
   }
 
-  function disposeModel(object) {
-    const geometries = new Set()
-    const materials = new Set()
-    object.traverse((o) => {
-      if (o.isMesh) {
-        geometries.add(o.geometry)
-        for (const m of [].concat(o.material)) materials.add(m)
-      }
-    })
-    geometries.forEach((g) => g.dispose())
-    materials.forEach((m) => m.dispose())
-  }
-
   function dispose() {
     disposed = true
     window.removeEventListener('pointermove', onPointer)
@@ -322,7 +263,6 @@ export function createFlyer3D() {
       canvas.removeEventListener('webglcontextlost', onLost)
       canvas.remove()
     }
-    if (model) disposeModel(model)
     env?.dispose()
     renderer?.dispose()
     img?.remove()

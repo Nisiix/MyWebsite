@@ -76,7 +76,7 @@ let coolTimer, actTimer, nudgeTimer
 const visible = computed(() => ((turns.value % 2) + 2) % 2)
 const current = computed(() => faces.value[visible.value])
 const isSlider = computed(() => current.value !== 'chip')
-// "Sacrifica Iron Man" si può usare solo quando ogni orsacchiotto è al suo posto
+// "Sacrifica Iron Man" si può usare solo quando ogni robottino è al suo posto
 const waiting = computed(() => current.value === 'sacrifice' && !snapReady.value)
 const ariaLabel = computed(() =>
   isSlider.value ? `${labels.value[current.value]} (${t('home.slideHint')})` : labels.value.chip
@@ -363,7 +363,7 @@ onUnmounted(() => {
   --txt: #ffe08a;
   --glint: #ffffff;
   transition: filter 0.4s, box-shadow 0.4s;
-  background: linear-gradient(135deg, #8e0e0e, #c8231c 50%, #8e0e0e);
+  background: linear-gradient(135deg, #d32f2f, #e53935 50%, #d32f2f);
   border-color: #f2c14e;
   color: #ffe08a;
   box-shadow: 0 0 18px rgba(214, 40, 30, 0.55), inset 0 0 0 2px rgba(242, 193, 78, 0.35);
@@ -378,7 +378,7 @@ onUnmounted(() => {
   cursor: progress;
 }
 .snap-chip.waiting .is-sacrifice {
-  filter: saturate(0.45) brightness(0.85);
+  filter: saturate(0.8);
   box-shadow: none;
   cursor: progress;
 }
