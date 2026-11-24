@@ -1,12 +1,8 @@
-// Personaggini a sfera che girano nella griglia dello sfondo della home, come in un labirinto.
-// Si muovono da una cella all'altra, evitano celle occupate (scritta, blocchi alzati, altri
-// personaggini), ogni tanto cambiano strada, compaiono e spariscono a caso e non troppo spesso.
+// Personaggino a sfera che gira nella griglia dello sfondo della home, come in un labirinto.
+// Entra da un bordo laterale, si muove da una cella all'altra evitando le celle occupate
+// (scritta, blocchi alzati), ogni tanto cambia strada, poi esce dal bordo più vicino.
 
-const COLORS = [
-  { name: 'red', body: '#ff3b47', dark: '#b3121d' },
-  { name: 'green', body: '#2fd665', dark: '#11893a' },
-  { name: 'blue', body: '#3d86ff', dark: '#1745b8' }
-]
+const COLOR = { body: '#ffd23f', dark: '#c99700' } // giallo
 const DIRS = [
   [1, 0],
   [-1, 0],
@@ -15,9 +11,10 @@ const DIRS = [
 ]
 const SPEED = 2.4 // celle al secondo
 const TURN_CHANCE = 0.3 // a ogni incrocio, probabilità di cambiare strada anche se si può proseguire
-const LIFE = [12, 22] // secondi di vita di un personaggino
-const PAUSE = [6, 14] // secondi tra un'apparizione e la successiva
-const POP = 0.35 // secondi per comparire o sparire
+const LIFE = [12, 22] // secondi a spasso prima di dirigersi verso l'uscita
+const PAUSE = [6, 14] // secondi tra un'uscita e il rientro successivo
+const POP = 0.35 // secondi per sparire se resta bloccato mentre cerca l'uscita
+const EXIT_TIMEOUT = 15 // secondi massimi per trovare l'uscita
 const CHEW_EVERY = 5 // secondi tra una masticata e l'altra
 const CHEW_FOR = 1.6 // durata di una masticata
 const CHEW_BITES = 3 // morsi in una masticata
@@ -32,33 +29,46 @@ export function createCritters() {
   const reserved = (col, row, self) =>
     critters.some((c) => c !== self && ((c.col === col && c.row === row) || (c.tcol === col && c.trow === row)))
 
+  // Entra da fuori schermo, a sinistra o a destra, su una riga con la prima cella libera
   function spawn(view, isFree) {
-    const color = COLORS.find((k) => !critters.some((c) => c.color === k))
-    if (!color) return
-    // una cella libera a caso tra quelle visibili
+    if (critters.length) return
     for (let tries = 0; tries < 40; tries++) {
-      const col = Math.floor(rand(0, view.cols))
+      const fromLeft = Math.random() < 0.5
       const row = Math.floor(rand(view.minRow, view.maxRow + 1))
-      if (!isFree(col, row) || reserved(col, row)) continue
-      const dir = DIRS[Math.floor(Math.random() * 4)]
-      critters.push({ col, row, tcol: col, trow: row, t: 1, dir, color, age: 0, life: rand(...LIFE), scale: 0 })
+      const edge = fromLeft ? 0 : view.cols - 1
+      if (!isFree(edge, row) || reserved(edge, row)) continue
+      const col = fromLeft ? -1 : view.cols
+      const dir = fromLeft ? [1, 0] : [-1, 0]
+      critters.push({ col, row, tcol: col, trow: row, t: 1, dir, color: COLOR, age: 0, life: rand(...LIFE), scale: 1, entering: true })
       return
     }
   }
 
-  // Sceglie la prossima cella: dritto se possibile, a volte gira, torna indietro solo se bloccato
-  function chooseNext(c, view, isFree) {
+  // Sceglie la prossima cella: dritto se possibile, a volte gira, torna indietro solo se bloccato.
+  // Quando è ora di andare, punta al bordo laterale più vicino e può uscire dallo schermo.
+  function chooseNext(c, view, isFree, leaving) {
     const ok = ([dx, dy]) => {
       const col = c.col + dx
       const row = c.row + dy
-      return col >= 0 && col < view.cols && row >= view.minRow && row <= view.maxRow && isFree(col, row) && !reserved(col, row, c)
+      if (row < view.minRow || row > view.maxRow) return false
+      if (col < 0 || col >= view.cols) return leaving && dy === 0
+      return isFree(col, row) && !reserved(col, row, c)
     }
-    const back = [-c.dir[0], -c.dir[1]]
-    const sides = DIRS.filter((d) => (d[0] !== c.dir[0] || d[1] !== c.dir[1]) && (d[0] !== back[0] || d[1] !== back[1])).filter(ok)
     let dir = null
-    if (ok(c.dir) && !(sides.length && Math.random() < TURN_CHANCE)) dir = c.dir
-    else if (sides.length) dir = sides[Math.floor(Math.random() * sides.length)]
-    else if (ok(back)) dir = back
+    if (c.entering) {
+      // primo passo dentro lo schermo
+      if (ok(c.dir)) dir = c.dir
+      c.entering = false
+    }
+    const exitDir = c.col < view.cols / 2 ? [-1, 0] : [1, 0]
+    if (!dir && leaving && ok(exitDir)) dir = exitDir
+    if (!dir) {
+      const back = [-c.dir[0], -c.dir[1]]
+      const sides = DIRS.filter((d) => (d[0] !== c.dir[0] || d[1] !== c.dir[1]) && (d[0] !== back[0] || d[1] !== back[1])).filter(ok)
+      if (ok(c.dir) && !(sides.length && Math.random() < TURN_CHANCE)) dir = c.dir
+      else if (sides.length) dir = sides[Math.floor(Math.random() * sides.length)]
+      else if (ok(back)) dir = back
+    }
     if (!dir) return false // circondato: aspetta un giro
     c.dir = dir
     c.tcol = c.col + dir[0]
@@ -73,7 +83,7 @@ export function createCritters() {
       return false
     }
     clock += dt
-    nextSpawn -= dt
+    if (!critters.length) nextSpawn -= dt
     if (nextSpawn <= 0) {
       spawn(view, isFree)
       nextSpawn = rand(...PAUSE)
@@ -81,18 +91,20 @@ export function createCritters() {
     for (const c of critters) {
       c.age += dt
       const leaving = c.age > c.life
-      c.scale = leaving ? Math.max(0, c.scale - dt / POP) : Math.min(1, c.scale + dt / POP)
+      // non trova l'uscita: sparisce sul posto
+      if (c.age > c.life + EXIT_TIMEOUT) c.scale = Math.max(0, c.scale - dt / POP)
       if (c.t < 1) {
         c.t = Math.min(1, c.t + SPEED * dt)
         if (c.t === 1) {
           c.col = c.tcol
           c.row = c.trow
+          if (leaving && (c.col < 0 || c.col >= view.cols)) c.gone = true
         }
       }
-      if (c.t >= 1 && !leaving) chooseNext(c, view, isFree)
+      if (c.t >= 1 && !c.gone && c.scale > 0) chooseNext(c, view, isFree, leaving)
     }
-    // via quelli spariti o finiti fuori dallo schermo scorrendo
-    critters = critters.filter((c) => !(c.age > c.life && c.scale === 0) && c.row >= view.minRow - 1 && c.row <= view.maxRow + 1)
+    // via quelli usciti, spariti o finiti fuori dallo schermo scorrendo
+    critters = critters.filter((c) => !c.gone && c.scale > 0 && c.row >= view.minRow - 1 && c.row <= view.maxRow + 1)
     return critters.length > 0
   }
 
@@ -118,7 +130,7 @@ export function createCritters() {
 // Personaggino originale: una sferetta lucida con due occhi neri e una bocca disegnata
 // sul viso che si apre e si chiude come se masticasse; il viso guarda dove va
 function drawCritter(ctx, x, y, cell, c, clock, light) {
-  const r = cell * 0.36 * easeBack(c.scale)
+  const r = cell * 0.36 * c.scale
   if (r <= 0) return
   const hop = Math.abs(Math.sin(clock * 8 + c.life)) * cell * 0.05
   const [dx, dy] = c.dir
@@ -184,10 +196,4 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath()
   ctx.roundRect(x, y, w, h, r)
   ctx.fill()
-}
-
-// piccolo rimbalzo quando compare
-function easeBack(t) {
-  const k = 1.70158
-  return 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2)
 }
