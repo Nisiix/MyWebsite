@@ -19,7 +19,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { theme } from '@/theme'
-import { createCritters } from './bgCritters'
+import { createFlyer } from './bgFlyer'
 import { createArmy } from './bgSnap'
 import { snap, snapReady } from '@/stores/snap'
 
@@ -272,21 +272,18 @@ function makeView() {
   }
 }
 
-// Personaggini che girano nella griglia della home (vedi bgCritters.js)
-const critters = createCritters()
+// Robottino che vola nello sfondo della home (vedi bgFlyer.js)
+const critters = createFlyer()
 let critterFrame = 0
 let critterTimer = 0
 
-// Una cella è libera se non fa parte della scritta e non c'è un blocco alzato o in salita
-function isCellFree(col, row) {
-  if (wordLetters.length) {
-    // tutta l'area della scritta, con un margine di una cella, è vietata
-    const first = wordLetters[0]
-    const last = wordLetters[wordLetters.length - 1]
-    if (col >= first.col - 1 && col <= last.col + last.w && row >= first.top - 1 && row <= first.top + WORD_H) return false
-  }
-  const key = `${col}:${row}`
-  return (lifts.get(key) ?? 0) < 0.003 && targetLift(col, row, window.scrollY) === 0
+// Rettangolo della scritta sullo schermo, da cui il robottino si tiene lontano (null se non c'è)
+function wordRect(scrollY) {
+  if (!wordLetters.length || scrollY > WORD_FADE || wordFx.mode !== 'none') return null
+  const first = wordLetters[0]
+  const last = wordLetters[wordLetters.length - 1]
+  const y0 = first.top * CELL - scrollY * PARALLAX
+  return { x0: first.col * CELL, x1: (last.col + last.w) * CELL, y0, y1: y0 + WORD_H * CELL }
 }
 
 // Avanza la rotazione di una lettera di dt secondi e restituisce l'angolo (0 se ferma)
@@ -391,16 +388,14 @@ function draw() {
   const snapBusy = wordFx.mode !== 'none' || army.active()
   const view = {
     active: route.name === 'home' && !snapBusy,
-    cols: Math.floor(width / CELL),
-    minRow: firstRow + Math.ceil(80 / CELL), // sotto la barra di navigazione
-    maxRow: firstRow + Math.floor(height / CELL) - 1,
+    width,
+    height,
     cell: CELL,
-    gridScroll: scrollY * PARALLAX,
+    avoid: wordRect(scrollY),
     light: theme.value === 'light'
   }
-  if (critters.update(critterDt, view, isCellFree)) animating = true
+  if (critters.update(critterDt, view)) animating = true
   if (!view.active) critterFrame = 0
-  critters.draw(ctx, view)
 
   const dt = Math.min(now - (lastFrame || now), 50) / 1000
   lastFrame = now
@@ -462,6 +457,9 @@ function draw() {
 
   blocks.sort((a, b) => b.dist - a.dist)
   for (const b of blocks) (b.spin ? drawSpinningBlock(b, cx, cy) : drawBlock(b, cx, cy))
+
+  // il robottino vola sopra i blocchi
+  critters.draw(ctx, view)
 
   return animating
 }
