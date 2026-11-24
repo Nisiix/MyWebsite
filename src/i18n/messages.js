@@ -6,7 +6,6 @@ export const messages = {
       home: 'Home',
       curriculum: 'Curriculum',
       projects: 'Progetti',
-      contacts: 'Contatti',
       toggle: 'Apri o chiudi il menu',
       language: 'Lingua'
     },
@@ -19,8 +18,6 @@ export const messages = {
       badge: 'Sviluppatore software',
       hello: 'Ciao, sono',
       subtitle: 'Sviluppatore software specializzato in soluzioni gestionali, strumenti digitali e interfacce moderne che fanno la differenza.',
-      ctaProjects: 'Esplora i progetti',
-      ctaCurriculum: 'Il mio curriculum',
       scroll: 'Scorri',
       scrollLabel: 'Scorri alla sezione successiva',
       aboutTitle: 'Chi sono',
@@ -102,7 +99,6 @@ export const messages = {
       home: 'Home',
       curriculum: 'Résumé',
       projects: 'Projects',
-      contacts: 'Contact',
       toggle: 'Open or close the menu',
       language: 'Language'
     },
@@ -115,8 +111,6 @@ export const messages = {
       badge: 'Software developer',
       hello: "Hi, I'm",
       subtitle: 'Software developer specialised in business management software, digital tools and modern interfaces that make a difference.',
-      ctaProjects: 'Explore my projects',
-      ctaCurriculum: 'My résumé',
       scroll: 'Scroll',
       scrollLabel: 'Scroll to the next section',
       aboutTitle: 'About me',

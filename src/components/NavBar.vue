@@ -74,8 +74,7 @@ const progress = ref(0)
 const navLinks = [
   { name: 'Home', label: 'nav.home', to: { path: '/' }, icon: 'pi pi-home' },
   { name: 'Curriculum', label: 'nav.curriculum', to: { path: '/curriculum' }, icon: 'pi pi-file' },
-  { name: 'Progetti', label: 'nav.projects', to: { path: '/progetti' }, icon: 'pi pi-folder-open' },
-  { name: 'Contatti', label: 'nav.contacts', to: { path: '/', hash: '#contatti' }, icon: 'pi pi-envelope' }
+  { name: 'Progetti', label: 'nav.projects', to: { path: '/progetti' }, icon: 'pi pi-folder-open' }
 ]
 
 function isActive(link) {

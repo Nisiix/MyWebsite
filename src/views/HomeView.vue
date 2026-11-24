@@ -17,16 +17,6 @@
           <span class="gold-gradient">Nisiix Dev</span>
         </h1>
         <p class="hero-subtitle fade-in fade-in-delay-2">{{ $t('home.subtitle') }}</p>
-        <div class="hero-actions fade-in fade-in-delay-3">
-          <router-link to="/progetti" class="btn-gold">
-            <i class="pi pi-folder-open"></i>
-            {{ $t('home.ctaProjects') }}
-          </router-link>
-          <router-link to="/curriculum" class="btn-outline">
-            <i class="pi pi-file"></i>
-            {{ $t('home.ctaCurriculum') }}
-          </router-link>
-        </div>
       </div>
     </section>
 
@@ -310,14 +300,6 @@ const hobbies = computed(() =>
   max-width: 620px;
   margin: 0 auto 40px;
   line-height: 1.8;
-}
-
-.hero-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 /* ============ SCROLL INDICATOR ============ */
