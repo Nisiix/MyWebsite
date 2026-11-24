@@ -81,7 +81,7 @@ export const messages = {
       badge: 'Portfolio',
       titleStart: 'I miei',
       titleAccent: 'progetti',
-      subtitle: "Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea alla pubblicazione. Apri una card per visitare il sito del progetto.",
+      subtitle: "Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea alla pubblicazione.",
       visit: 'Visita il sito',
       previewAlt: 'Anteprima della landing page di {name}'
     },
@@ -172,7 +172,7 @@ export const messages = {
       badge: 'Portfolio',
       titleStart: 'My',
       titleAccent: 'projects',
-      subtitle: 'Applications I designed and built on my own, from idea to release. Open a card to visit the project website.',
+      subtitle: 'Applications I designed and built on my own, from idea to release.',
       visit: 'Visit website',
       previewAlt: '{name} landing page preview'
     },
