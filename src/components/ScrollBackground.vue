@@ -25,7 +25,8 @@ const PARALLAX = 0.12 // la griglia scorre al 12% della velocità della pagina
 const DENSITY = 0.12 // quota di quadrati che possono alzarsi
 const MAX_LIFT = 0.22 // altezza massima: il tetto del blocco si avvicina del 16% verso chi guarda
 const RISE_WINDOW = 1300 // px di scroll in cui un blocco resta alzato
-const EASE = 0.08 // morbidezza dell'animazione (più basso = più lento)
+const EASE = 0.08
+const SCROLL_START = 20 // px: i blocchi iniziano ad alzarsi solo dopo questo scroll // morbidezza dell'animazione (più basso = più lento)
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -47,8 +48,9 @@ function hash(col, row, seed) {
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
   if (hash(col, row, 1) > DENSITY) return 0
-  // ogni blocco ha il suo momento: distribuito lungo tutta la pagina
-  const start = hash(col, row, 2) * (maxScroll + RISE_WINDOW) - RISE_WINDOW * 0.6
+  // ogni blocco ha il suo momento, distribuito lungo la pagina a partire dal primo scroll:
+  // in cima alla pagina non c'è nessun blocco alzato
+  const start = SCROLL_START + hash(col, row, 2) * Math.max(maxScroll - SCROLL_START, 1)
   const t = (scrollY - start) / RISE_WINDOW
   if (t <= 0 || t >= 1) return 0
   const bump = Math.sin(t * Math.PI) // sale e poi riscende
@@ -110,7 +112,7 @@ function draw() {
     for (let col = 0; col < cols; col++) {
       const key = `${col}:${row}`
       seen.add(key)
-      const target = reducedMotion ? targetLift(col, row, 0) : targetLift(col, row, scrollY)
+      const target = targetLift(col, row, scrollY)
       const prev = lifts.get(key) ?? 0
       const next = reducedMotion ? target : prev + (target - prev) * EASE
       if (Math.abs(target - next) > 0.0005) animating = true
