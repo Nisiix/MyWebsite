@@ -182,40 +182,73 @@ function project(x, y, lift, cx, cy) {
 }
 
 // ---- Rotazione delle lettere al passaggio del mouse ----
-const SPIN_MS = 1800 // durata di un giro completo: lento
+// Ogni lettera ha un angolo e una velocità: finché il mouse resta sopra continua a girare;
+// quando esce rallenta e si ferma dritta, completando almeno un giro.
+const SPIN_SPEED = (Math.PI * 2) / 1.8 // velocità piena: un giro ogni 1,8 s, lento
+const SPIN_ACCEL = SPIN_SPEED / 0.5 // raggiunge la velocità piena in mezzo secondo
+const SPIN_BRAKE = (SPIN_SPEED * SPIN_SPEED) / (2 * Math.PI) // frena in circa mezzo giro
 const BOX_DEPTH = 0.8 // spessore del blocco durante la rotazione, in celle
 let hoveredLetter = -1
-let lastPointerX = null
+let lastPointer = null // ultima posizione del mouse nelle coordinate della griglia
+let lastFrame = 0
 
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
-
-// Angolo attuale di una lettera (0 se ferma); a giro finito la rotazione si spegne
-function letterAngle(letter, now) {
+// Avanza la rotazione di una lettera di dt secondi e restituisce l'angolo (0 se ferma)
+function stepSpin(letter, index, dt) {
   const spin = letter.spin
   if (!spin) return 0
-  const t = (now - spin.start) / SPIN_MS
-  if (t >= 1) {
-    letter.spin = null
-    return 0
+  const full = Math.PI * 2
+  if (index === hoveredLetter) {
+    spin.speed = Math.min(SPIN_SPEED, spin.speed + SPIN_ACCEL * dt)
+  } else {
+    // frena per fermarsi esattamente alla fine del giro in corso
+    const end = Math.ceil((spin.progress + 1e-3) / full) * full
+    const brake = Math.sqrt(2 * SPIN_BRAKE * (end - spin.progress))
+    spin.speed = Math.max(0.6, Math.min(SPIN_SPEED, spin.speed + SPIN_ACCEL * dt, brake))
+    if (spin.progress + spin.speed * dt >= end) {
+      letter.spin = null
+      return 0
+    }
   }
-  return spin.dir * Math.PI * 2 * easeInOut(t)
+  spin.progress += spin.speed * dt
+  return spin.dir * spin.progress
 }
 
-// Il mouse entra in una lettera: quella lettera fa un giro nel verso del movimento
+// Lettera sotto un punto della griglia (coordinate in px), -1 se nessuna
+function letterAt(x, y) {
+  const col = Math.floor(x / CELL)
+  const row = Math.floor(y / CELL)
+  return wordLetters.findIndex((l) => col >= l.col && col < l.col + l.w && row >= l.top && row < l.top + WORD_H)
+}
+
+function startSpin(index, dir) {
+  const letter = wordLetters[index]
+  if (!letter || wordElapsed < letter.written || window.scrollY > WORD_FADE) return
+  if (!letter.spin) letter.spin = { progress: 0, speed: 0, dir }
+}
+
+// Con un movimento veloce il browser segnala il mouse solo ogni tanti pixel e una lettera
+// stretta come la I può cadere tra due segnalazioni: si controlla tutto il tratto percorso.
 function onPointerMove(e) {
   if (e.pointerType !== 'mouse' || !wordLetters.length) return
-  const dx = lastPointerX === null ? 1 : e.clientX - lastPointerX
-  lastPointerX = e.clientX
-  const col = Math.floor(e.clientX / CELL)
-  const row = Math.floor((e.clientY + window.scrollY * PARALLAX) / CELL)
-  const index = wordLetters.findIndex(
-    (l) => col >= l.col && col < l.col + l.w && row >= l.top && row < l.top + WORD_H
-  )
-  if (index === hoveredLetter) return
-  hoveredLetter = index
-  const letter = wordLetters[index]
-  if (!letter || letter.spin || wordElapsed < letter.written || window.scrollY > WORD_FADE) return
-  letter.spin = { start: performance.now(), dir: dx < 0 ? -1 : 1 }
+  const x = e.clientX
+  const y = e.clientY + window.scrollY * PARALLAX
+  const from = lastPointer ?? { x, y }
+  lastPointer = { x, y }
+  const dir = x < from.x ? -1 : 1
+  const steps = Math.max(1, Math.ceil(Math.hypot(x - from.x, y - from.y) / (CELL / 4)))
+  for (let i = 1; i <= steps; i++) {
+    const index = letterAt(from.x + ((x - from.x) * i) / steps, from.y + ((y - from.y) * i) / steps)
+    if (index !== -1) startSpin(index, dir)
+  }
+  hoveredLetter = letterAt(x, y)
+  if (wordLetters.some((l) => l.spin)) schedule()
+}
+
+// Il mouse esce dalla finestra: nessuna lettera resta sotto il cursore
+function onPointerOut(e) {
+  if (e.relatedTarget) return
+  hoveredLetter = -1
+  lastPointer = null
   schedule()
 }
 
@@ -251,8 +284,11 @@ function draw() {
   // finché la scritta non è completa bisogna continuare a disegnare
   let animating = !!wordCells && wordElapsed < wordDuration
   const now = performance.now()
-  const angles = wordLetters.map((l) => letterAngle(l, now))
+  const dt = Math.min(now - (lastFrame || now), 50) / 1000
+  lastFrame = now
+  const angles = wordLetters.map((l, i) => stepSpin(l, i, dt))
   if (wordLetters.some((l) => l.spin)) animating = true
+  else lastFrame = 0
   const blocks = []
   const seen = new Set()
   for (let r = -1; r < rows; r++) {
@@ -410,6 +446,7 @@ onMounted(() => {
   window.addEventListener('scroll', schedule, { passive: true })
   window.addEventListener('resize', onResize, { passive: true })
   window.addEventListener('pointermove', onPointerMove, { passive: true })
+  window.addEventListener('pointerout', onPointerOut, { passive: true })
   // l'altezza della pagina cambia cambiando pagina o lingua
   resizeObserver = new ResizeObserver(() => {
     maxScroll = Math.max(document.documentElement.scrollHeight - height, 1)
@@ -440,6 +477,7 @@ onUnmounted(() => {
   window.removeEventListener('scroll', schedule)
   window.removeEventListener('resize', onResize)
   window.removeEventListener('pointermove', onPointerMove)
+  window.removeEventListener('pointerout', onPointerOut)
   resizeObserver?.disconnect()
 })
 </script>
