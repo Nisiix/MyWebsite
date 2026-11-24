@@ -114,10 +114,7 @@ export const messages = {
       titleAccent: 'progetti',
       subtitle: "Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea alla pubblicazione.",
       visit: 'Visita il sito',
-      previewAlt: 'Anteprima della landing page di {name}',
-      filterLabel: 'Filtra per tecnologia',
-      filterAll: 'Tutti',
-      filterCount: '{n} progetti'
+      previewAlt: 'Anteprima della landing page di {name}'
     },
     notFound: {
       badge: 'Errore 404',
@@ -244,10 +241,7 @@ export const messages = {
       titleAccent: 'projects',
       subtitle: 'Applications I designed and built on my own, from idea to release.',
       visit: 'Visit website',
-      previewAlt: '{name} landing page preview',
-      filterLabel: 'Filter by technology',
-      filterAll: 'All',
-      filterCount: '{n} projects'
+      previewAlt: '{name} landing page preview'
     },
     notFound: {
       badge: 'Error 404',
