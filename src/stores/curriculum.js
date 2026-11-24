@@ -30,6 +30,14 @@ export const useCurriculumStore = defineStore('curriculum', () => {
     }
   ])
 
+  // Stack tecnologico completo (badge in fondo al curriculum e nel CV in PDF)
+  const techStack = ref([
+    'Visual Basic 6', 'C#', '.NET', 'WinForms',
+    'JavaScript', 'Vue.js', 'Vuetify', 'Pinia', 'PrimeVue',
+    'Express.js', 'Node.js', 'REST API', 'Java', 'Netbeans',
+    'Microsoft Access', 'NHibernate', 'Figma', 'Git', 'HTML5', 'CSS3'
+  ])
+
   const technologies = computed(() => {
     const techs = []
     skills.value.forEach(category => {
@@ -42,6 +50,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
 
   return {
     skills,
+    techStack,
     technologies
   }
 })

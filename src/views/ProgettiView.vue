@@ -19,11 +19,27 @@
     <!-- Projects Grid -->
     <section class="section projects-section">
       <div class="container">
-        <div class="projects-grid">
+        <!-- Filtri per tecnologia -->
+        <div class="project-filters" role="group" :aria-label="$t('projects.filterLabel')" v-reveal>
+          <button
+            v-for="tech in [null, ...technologies]"
+            :key="tech || 'all'"
+            type="button"
+            class="filter-chip"
+            :class="{ active: activeTech === tech }"
+            :aria-pressed="activeTech === tech"
+            @click="activeTech = tech"
+          >
+            {{ tech || $t('projects.filterAll') }}
+          </button>
+        </div>
+        <p class="sr-only" aria-live="polite">{{ $t('projects.filterCount').replace('{n}', filteredProjects.length) }}</p>
+
+        <TransitionGroup name="project-list" tag="div" class="projects-grid">
           <component
             :is="project.url ? 'a' : 'div'"
-            v-for="(project, index) in store.projects"
-            :key="index"
+            v-for="(project, index) in filteredProjects"
+            :key="project.name"
             class="project-card glass-card"
             :class="{ 'is-link': project.url }"
             v-bind="project.url ? { href: project.url, target: '_blank', rel: 'noopener noreferrer' } : {}"
@@ -59,6 +75,7 @@
                   v-for="tag in project.tags"
                   :key="tag"
                   class="project-tag"
+                  :class="{ highlighted: tag === activeTech }"
                 >
                   {{ tag }}
                 </span>
@@ -71,26 +88,87 @@
                 :style="{ '--accent': project.color }"
               >
                 <span>{{ $t('projects.visit') }}</span>
-                <i class="pi pi-external-link"></i>
+                <span class="sr-only">{{ $t('a11y.newTab') }}</span>
+                <i class="pi pi-external-link" aria-hidden="true"></i>
               </span>
             </div>
           </component>
-        </div>
+        </TransitionGroup>
       </div>
     </section>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import { useProgettiStore } from '@/stores/progetti'
 
 const store = useProgettiStore()
+
+// Tecnologie usate nei progetti, in ordine alfabetico, per i filtri
+const technologies = computed(() =>
+  [...new Set(store.projects.flatMap((p) => p.tags))].sort((a, b) => a.localeCompare(b))
+)
+const activeTech = ref(null) // null = tutti i progetti
+const filteredProjects = computed(() =>
+  activeTech.value ? store.projects.filter((p) => p.tags.includes(activeTech.value)) : store.projects
+)
 </script>
 
 <style scoped>
+/* Filtri */
+.project-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.filter-chip {
+  padding: 8px 18px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: 100px;
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.filter-chip:hover {
+  color: var(--gold);
+  border-color: var(--border-gold);
+}
+
+.filter-chip.active {
+  color: var(--bg-primary);
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-color: transparent;
+  box-shadow: var(--shadow-gold);
+}
+
+/* Entrata/uscita delle card quando cambia il filtro */
+.project-list-move,
+.project-list-enter-active,
+.project-list-leave-active {
+  transition: opacity 0.4s var(--ease-smooth), transform 0.4s var(--ease-smooth);
+}
+
+.project-list-enter-from,
+.project-list-leave-to {
+  opacity: 0;
+  transform: scale(0.96) translateY(12px);
+}
+
+.project-list-leave-active {
+  position: absolute;
+}
+
 /* Hero */
 /* Projects Grid */
 .projects-grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr));
   gap: 28px;
@@ -257,8 +335,16 @@ const store = useProgettiStore()
 }
 
 .project-card:hover .project-tag {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-medium);
   color: var(--text-secondary);
+}
+
+/* tecnologia scelta nel filtro */
+.project-tag.highlighted,
+.project-card:hover .project-tag.highlighted {
+  color: var(--gold);
+  border-color: var(--border-gold);
+  background: var(--gold-subtle);
 }
 
 /* Explore Button */

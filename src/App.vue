@@ -1,8 +1,9 @@
 <template>
+  <a href="#main-content" class="skip-link" @click.prevent="skipToContent">{{ $t('a11y.skip') }}</a>
   <ScrollBackground />
   <div class="app-wrapper">
     <NavBar />
-    <main class="main-content">
+    <main id="main-content" class="main-content" tabindex="-1">
       <RouterView v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
@@ -17,6 +18,13 @@
 import NavBar from '@/components/NavBar.vue'
 import FooterBar from '@/components/FooterBar.vue'
 import ScrollBackground from '@/components/ScrollBackground.vue'
+
+// Porta il focus della tastiera all'inizio del contenuto della pagina
+function skipToContent() {
+  const main = document.getElementById('main-content')
+  main?.focus({ preventScroll: true })
+  main?.scrollIntoView()
+}
 </script>
 
 <style scoped>
@@ -30,6 +38,7 @@ import ScrollBackground from '@/components/ScrollBackground.vue'
 
 .main-content {
   flex: 1;
+  outline: none;
   padding-top: 80px; /* navbar height */
 }
 

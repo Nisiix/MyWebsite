@@ -16,7 +16,7 @@
 
     <transition name="lang-pop">
       <ul v-if="open" class="lang-menu" role="listbox" :aria-label="$t('nav.language')">
-        <li v-for="l in LOCALES" :key="l.code">
+        <li v-for="l in LOCALES" :key="l.code" role="none">
           <button
             type="button"
             role="option"
@@ -130,7 +130,7 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 .lang-option:hover {
   color: var(--text-white);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-tint);
 }
 
 .lang-option.selected {

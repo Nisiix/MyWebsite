@@ -18,6 +18,7 @@
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { theme } from '@/theme'
 
 const canvas = ref(null)
 const route = useRoute()
@@ -45,35 +46,53 @@ const GLYPHS = {
   // dall'angolo in alto a destra, a serpentina fino in basso a sinistra
   S: { w: 3, path: [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 3], [2, 4], [1, 4], [0, 4]] },
   // prima la diagonale da in alto a sinistra, poi quella da in alto a destra
-  X: { w: 3, path: [[0, 0], [0, 1], [1, 2], [2, 3], [2, 4], [2, 0], [2, 1], [0, 3], [0, 4]] }
+  X: { w: 3, path: [[0, 0], [0, 1], [1, 2], [2, 3], [2, 4], [2, 0], [2, 1], [0, 3], [0, 4]] },
+  // giù a sinistra, il trattino, poi l'asta destra dall'alto in basso
+  4: { w: 3, path: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 0], [2, 1], [2, 2], [2, 3], [2, 4]] },
+  // un giro in senso antiorario partendo da in alto a destra
+  0: { w: 3, path: [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [2, 3], [2, 2], [2, 1]] }
 }
-const WORD = 'NISIIX'
 const BLOCK_STEP = 55 // ms tra un blocco e il successivo
 const LETTER_PAUSE = 160 // ms di pausa in più tra una lettera e l'altra
 const WORD_DELAY = 250 // ms prima del primo blocco
-const WORD_CELLS = [] // [col, row, ritardo in ms] relativi all'angolo in alto a sinistra della scritta
-let WORD_W = 0
-let wordClock = WORD_DELAY
-for (const ch of WORD) {
-  const g = GLYPHS[ch]
-  for (const [c, r] of g.path) {
-    WORD_CELLS.push([WORD_W + c, r, wordClock])
-    wordClock += BLOCK_STEP
+
+// Celle di una parola: [col, row, ritardo in ms] relative all'angolo in alto a sinistra
+const wordCache = new Map()
+function buildWord(word) {
+  if (wordCache.has(word)) return wordCache.get(word)
+  const cells = []
+  let w = 0
+  let clock = WORD_DELAY
+  for (const ch of word) {
+    const g = GLYPHS[ch]
+    if (!g) continue
+    for (const [c, r] of g.path) {
+      cells.push([w + c, r, clock])
+      clock += BLOCK_STEP
+    }
+    clock += LETTER_PAUSE
+    w += g.w + 1
   }
-  wordClock += LETTER_PAUSE
-  WORD_W += g.w + 1
+  // fine della scrittura, con il tempo per l'ultimo blocco di salire
+  const built = { cells, width: Math.max(w - 1, 0), duration: clock + 1200 }
+  wordCache.set(word, built)
+  return built
 }
-WORD_W -= 1
-const WORD_DURATION = wordClock + 1200 // fine della scrittura, con il tempo per l'ultimo blocco di salire
 const WORD_EASE = 0.13 // i blocchi della scritta salgono un po' più rapidi
-const WORD_H = 5
+const WORD_H = 5 // righe di ogni lettera
 const WORD_RAISE = 1 // righe di cui la scritta sta più in alto rispetto al centro dello spazio vuoto
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// Colori per tema: griglia, facce dei blocchi (oro), tetto, bordo del tetto
+const PALETTES = {
+  dark: { grid: 'rgba(255, 255, 255, 0.03)', side: '212, 175, 55', sideBoost: 1, roof: '24, 22, 16', edge: '212, 175, 55' },
+  light: { grid: 'rgba(0, 0, 0, 0.05)', side: '176, 138, 30', sideBoost: 2.2, roof: '251, 245, 226', edge: '143, 111, 18' }
+}
 
 let ctx = null
 let CELL = 60
 let wordCells = null // celle ("col:row") della scritta -> ritardo in ms, null se non siamo sulla home
+let wordName = '' // parola mostrata: NISIIX in home, 404 nella pagina non trovata
+let wordDuration = 0
 let wordStart = 0 // istante in cui è iniziata la scrittura
 let wordElapsed = 0 // ms trascorsi dall'inizio della scrittura, aggiornato a ogni fotogramma
 let width = 0
@@ -94,7 +113,7 @@ function hash(col, row, seed) {
 function targetLift(col, row, scrollY) {
   let word = 0
   const delay = wordCells?.get(`${col}:${row}`)
-  if (delay !== undefined && (reducedMotion || wordElapsed >= delay)) {
+  if (delay !== undefined && wordElapsed >= delay) {
     const w = Math.max(0, 1 - scrollY / WORD_FADE)
     word = WORD_LIFT * w * w
   }
@@ -129,19 +148,24 @@ function resize() {
 
 // Posiziona la scritta sulla griglia, centrata nello spazio vuoto lasciato dal titolo della home
 function measureWord() {
-  const anchor = route.name === 'home' ? document.querySelector('[data-bg-word]') : null
+  const anchor = document.querySelector('[data-bg-word]')
   if (!anchor) {
     wordCells = null
+    wordName = ''
     return
   }
-  // appena si arriva sulla home la scritta riparte da capo
-  if (!wordCells) wordStart = performance.now()
+  const name = anchor.dataset.bgWord || 'NISIIX'
+  const word = buildWord(name)
+  // arrivando sulla pagina (o cambiando parola) la scrittura riparte da capo
+  if (!wordCells || name !== wordName) wordStart = performance.now()
+  wordName = name
+  wordDuration = word.duration
   const rect = anchor.getBoundingClientRect()
   // posizione nella pagina; a scroll 0 la riga r della griglia sta a y = r * CELL
   const centerY = rect.top + window.scrollY + rect.height / 2
   const top = Math.round(centerY / CELL - WORD_H / 2) - WORD_RAISE
-  const left = Math.round((width / CELL - WORD_W) / 2)
-  wordCells = new Map(WORD_CELLS.map(([c, r, d]) => [`${left + c}:${top + r}`, d]))
+  const left = Math.round((width / CELL - word.width) / 2)
+  wordCells = new Map(word.cells.map(([c, r, d]) => [`${left + c}:${top + r}`, d]))
 }
 
 // Prospettiva vista dall'alto: il tetto di un blocco alzato si allarga dal centro dello schermo
@@ -163,7 +187,7 @@ function draw() {
   ctx.clearRect(0, 0, width, height)
 
   // Griglia piatta
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'
+  ctx.strokeStyle = PALETTES[theme.value].grid
   ctx.lineWidth = 1
   ctx.beginPath()
   for (let c = 0; c <= cols; c++) {
@@ -180,7 +204,7 @@ function draw() {
 
   // Blocchi: calcola altezze, poi disegna dal più lontano dal centro al più vicino
   // finché la scritta non è completa bisogna continuare a disegnare
-  let animating = !!wordCells && !reducedMotion && wordElapsed < WORD_DURATION
+  let animating = !!wordCells && wordElapsed < wordDuration
   const blocks = []
   const seen = new Set()
   for (let r = -1; r < rows; r++) {
@@ -191,7 +215,7 @@ function draw() {
       const target = targetLift(col, row, scrollY)
       const prev = lifts.get(key) ?? 0
       const ease = wordCells?.has(key) ? WORD_EASE : EASE
-      const next = reducedMotion ? target : prev + (target - prev) * ease
+      const next = prev + (target - prev) * ease
       if (Math.abs(target - next) > 0.0005) animating = true
       if (next < 0.002 && target === 0) {
         lifts.delete(key)
@@ -223,6 +247,7 @@ function drawBlock({ x, y, lift }, cx, cy) {
   const top = base.map(([px, py]) => project(px, py, lift, cx, cy))
   // i blocchi bassi (come quelli della scritta) restano ben visibili
   const strength = Math.min(lift / (MAX_LIFT * 0.3), 1)
+  const pal = PALETTES[theme.value]
 
   // Facce laterali: più chiare quelle rivolte verso l'alto (luce dall'alto)
   for (let i = 0; i < 4; i++) {
@@ -234,7 +259,7 @@ function drawBlock({ x, y, lift }, cx, cy) {
     ctx.lineTo(top[j][0], top[j][1])
     ctx.lineTo(top[i][0], top[i][1])
     ctx.closePath()
-    ctx.fillStyle = `rgba(212, 175, 55, ${light * strength})`
+    ctx.fillStyle = `rgba(${pal.side}, ${light * pal.sideBoost * strength})`
     ctx.fill()
   }
 
@@ -243,9 +268,9 @@ function drawBlock({ x, y, lift }, cx, cy) {
   ctx.moveTo(top[0][0], top[0][1])
   for (let i = 1; i < 4; i++) ctx.lineTo(top[i][0], top[i][1])
   ctx.closePath()
-  ctx.fillStyle = `rgba(24, 22, 16, ${0.96 * strength})`
+  ctx.fillStyle = `rgba(${pal.roof}, ${0.96 * strength})`
   ctx.fill()
-  ctx.strokeStyle = `rgba(212, 175, 55, ${0.55 * strength})`
+  ctx.strokeStyle = `rgba(${pal.edge}, ${0.6 * strength})`
   ctx.lineWidth = 1
   ctx.stroke()
 }
@@ -283,9 +308,12 @@ onMounted(() => {
   resizeObserver.observe(document.body)
 })
 
+// nuovo tema: ridisegna con i colori giusti
+watch(theme, schedule)
+
 // cambiando pagina la scritta compare o scompare (dopo la transizione)
 watch(
-  () => route.name,
+  () => route.fullPath,
   () => {
     measureWord()
     schedule()
@@ -377,7 +405,7 @@ onUnmounted(() => {
 .bg-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45));
+  background: radial-gradient(ellipse at center, transparent 55%, var(--vignette));
 }
 
 @media (prefers-reduced-motion: reduce) {

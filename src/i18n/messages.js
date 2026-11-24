@@ -7,12 +7,27 @@ export const messages = {
       curriculum: 'Curriculum',
       projects: 'Progetti',
       toggle: 'Apri o chiudi il menu',
-      language: 'Lingua'
+      language: 'Lingua',
+      main: 'Navigazione principale',
+      menu: 'Menu',
+      themeToLight: 'Passa al tema chiaro',
+      themeToDark: 'Passa al tema scuro'
+    },
+    a11y: {
+      skip: 'Vai al contenuto',
+      newTab: '(si apre in una nuova scheda)'
+    },
+    meta: {
+      home: 'Nisiix Dev, sviluppatore software: gestionali su misura, tool e template per piattaforme gestionali, interfacce web moderne con Vue.js.',
+      curriculum: 'Curriculum di Nisiix Dev: competenze in Visual Basic 6, C#, JavaScript, Vue.js, Express.js e Java. Scaricabile in PDF.',
+      projects: 'Progetti di Nisiix Dev: Todo Doto, app desktop per gestire roadmap di progetto, e Tradermon, gioco educativo sugli investimenti.',
+      notFound: 'La pagina cercata non esiste.'
     },
     titles: {
       home: 'Home — Nisiix Dev',
       curriculum: 'Curriculum — Nisiix Dev',
-      projects: 'Progetti — Nisiix Dev'
+      projects: 'Progetti — Nisiix Dev',
+      notFound: 'Pagina non trovata — Nisiix Dev'
     },
     home: {
       badge: 'Sviluppatore software',
@@ -75,7 +90,19 @@ export const messages = {
       subtitle: 'Linguaggi, strumenti e piattaforme che ho padroneggiato nel corso della mia carriera. Principalmente sviluppo di software gestionali, tool e template per piattaforme gestionali, in secondo luogo sviluppo di siti web e web application a scopo ricreativo, personale e di apprendimento.',
       specTitle: 'Area di specializzazione',
       specText: "La mia principale area di competenza è lo <strong class=\"gold-text\">sviluppo di software gestionali</strong>, dalla progettazione architetturale all'implementazione completa. Creo <strong class=\"gold-text\">tool</strong> e <strong class=\"gold-text\">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di gestire progetti di migrazione e modernizzazione con una comprensione completa dello stack tecnologico.",
-      stackTitle: 'Stack tecnologico completo'
+      stackTitle: 'Stack tecnologico completo',
+      download: 'Scarica il CV in PDF',
+      downloadOther: 'English version',
+      downloadOtherLang: 'en'
+    },
+    cv: {
+      role: 'Sviluppatore software',
+      contacts: 'Contatti',
+      profile: 'Profilo',
+      skills: 'Competenze',
+      expertise: 'Area di specializzazione',
+      stack: 'Stack tecnologico',
+      footer: 'Generato da nisiix.github.io/NisiixDev'
     },
     projects: {
       badge: 'Portfolio',
@@ -83,7 +110,16 @@ export const messages = {
       titleAccent: 'progetti',
       subtitle: "Le applicazioni che ho progettato e sviluppato in autonomia, dall'idea alla pubblicazione.",
       visit: 'Visita il sito',
-      previewAlt: 'Anteprima della landing page di {name}'
+      previewAlt: 'Anteprima della landing page di {name}',
+      filterLabel: 'Filtra per tecnologia',
+      filterAll: 'Tutti',
+      filterCount: '{n} progetti'
+    },
+    notFound: {
+      badge: 'Errore 404',
+      title: 'Pagina non trovata',
+      text: "La pagina che cerchi non esiste o è stata spostata. Torna alla home per continuare a esplorare il sito.",
+      back: 'Torna alla home'
     },
     footer: {
       madeWith: 'Fatto con',
@@ -97,12 +133,27 @@ export const messages = {
       curriculum: 'Résumé',
       projects: 'Projects',
       toggle: 'Open or close the menu',
-      language: 'Language'
+      language: 'Language',
+      main: 'Main navigation',
+      menu: 'Menu',
+      themeToLight: 'Switch to light theme',
+      themeToDark: 'Switch to dark theme'
+    },
+    a11y: {
+      skip: 'Skip to content',
+      newTab: '(opens in a new tab)'
+    },
+    meta: {
+      home: 'Nisiix Dev, software developer: custom business management software, tools and templates for business platforms, modern web interfaces with Vue.js.',
+      curriculum: 'Résumé of Nisiix Dev: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Downloadable as PDF.',
+      projects: 'Projects by Nisiix Dev: Todo Doto, a desktop app for project roadmaps, and Tradermon, an educational investing game.',
+      notFound: 'The page you are looking for does not exist.'
     },
     titles: {
       home: 'Home — Nisiix Dev',
       curriculum: 'Résumé — Nisiix Dev',
-      projects: 'Projects — Nisiix Dev'
+      projects: 'Projects — Nisiix Dev',
+      notFound: 'Page not found — Nisiix Dev'
     },
     home: {
       badge: 'Software developer',
@@ -165,7 +216,19 @@ export const messages = {
       subtitle: 'Languages, tools and platforms I have mastered over my career. Mainly business management software, tools and templates for business platforms; secondly websites and web applications built for fun, for personal use and for learning.',
       specTitle: 'Area of expertise',
       specText: 'My main area of expertise is <strong class="gold-text">business management software</strong>, from architectural design to full implementation. I build <strong class="gold-text">tools</strong> and <strong class="gold-text">templates</strong> for business platforms that speed up development and ensure consistency and quality across the whole application ecosystem. My experience with both legacy (VB6) and modern (Vue.js, C#) technologies lets me handle migration and modernisation projects with a complete understanding of the technology stack.',
-      stackTitle: 'Full technology stack'
+      stackTitle: 'Full technology stack',
+      download: 'Download CV as PDF',
+      downloadOther: 'Versione italiana',
+      downloadOtherLang: 'it'
+    },
+    cv: {
+      role: 'Software developer',
+      contacts: 'Contact',
+      profile: 'Profile',
+      skills: 'Skills',
+      expertise: 'Area of expertise',
+      stack: 'Technology stack',
+      footer: 'Generated from nisiix.github.io/NisiixDev'
     },
     projects: {
       badge: 'Portfolio',
@@ -173,7 +236,16 @@ export const messages = {
       titleAccent: 'projects',
       subtitle: 'Applications I designed and built on my own, from idea to release.',
       visit: 'Visit website',
-      previewAlt: '{name} landing page preview'
+      previewAlt: '{name} landing page preview',
+      filterLabel: 'Filter by technology',
+      filterAll: 'All',
+      filterCount: '{n} projects'
+    },
+    notFound: {
+      badge: 'Error 404',
+      title: 'Page not found',
+      text: 'The page you are looking for does not exist or has moved. Head back home to keep exploring the site.',
+      back: 'Back to home'
     },
     footer: {
       madeWith: 'Made with',

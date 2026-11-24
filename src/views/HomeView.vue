@@ -12,7 +12,7 @@
              NISIIX è composta dai blocchi 3D dello sfondo, in questo spazio vuoto -->
         <h1 class="hero-title">
           <span class="sr-only">{{ $t('home.hello') }} Nisiix Dev</span>
-          <span class="hero-word" data-bg-word aria-hidden="true"></span>
+          <span class="hero-word" data-bg-word="NISIIX" aria-hidden="true"></span>
         </h1>
         <p class="hero-subtitle fade-in fade-in-delay-2">{{ $t('home.subtitle') }}</p>
       </div>
@@ -211,17 +211,7 @@ const hobbies = computed(() =>
   height: calc(8 * clamp(18px, 5vw, 60px));
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+
 
 .hero-subtitle {
   font-size: clamp(1rem, 2vw, 1.2rem);
@@ -332,7 +322,7 @@ const hobbies = computed(() =>
 
 /* ============ ACTIVITIES ============ */
 .activities-section {
-  background: rgba(17, 17, 17, 0.55);
+  background: var(--section-tint);
 }
 
 .activities-grid {
@@ -424,7 +414,7 @@ const hobbies = computed(() =>
 
 /* ============ CONTATTI ============ */
 .contacts-section {
-  background: rgba(17, 17, 17, 0.55);
+  background: var(--section-tint);
 }
 
 .contact-card {

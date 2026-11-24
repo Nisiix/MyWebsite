@@ -12,6 +12,16 @@
             {{ $t('curriculum.titleStart') }} <span class="gold-gradient">{{ $t('curriculum.titleAccent') }}</span>
           </h1>
           <p class="page-subtitle">{{ $t('curriculum.subtitle') }}</p>
+          <div class="cv-download">
+            <a :href="cvCurrent" class="btn-gold" download>
+              <i class="pi pi-download" aria-hidden="true"></i>
+              <span>{{ $t('curriculum.download') }}</span>
+            </a>
+            <a :href="cvOther" class="btn-outline" :hreflang="$t('curriculum.downloadOtherLang')" download>
+              <i class="pi pi-file-pdf" aria-hidden="true"></i>
+              <span>{{ $t('curriculum.downloadOther') }}</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -62,7 +72,7 @@
         <div class="tech-stack" v-reveal>
           <h3 class="tech-stack-title">{{ $t('curriculum.stackTitle') }}</h3>
           <div class="tech-badges">
-            <span class="tech-badge" v-for="tech in techStack" :key="tech">{{ tech }}</span>
+            <span class="tech-badge" v-for="tech in store.techStack" :key="tech">{{ tech }}</span>
           </div>
         </div>
       </div>
@@ -71,20 +81,27 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useCurriculumStore } from '@/stores/curriculum'
+import { t, locale } from '@/i18n'
 
 const store = useCurriculumStore()
 
-const techStack = ref([
-  'Visual Basic 6', 'C#', '.NET', 'WinForms',
-  'JavaScript', 'Vue.js', 'Vuetify', 'Pinia', 'PrimeVue',
-  'Express.js', 'Node.js', 'REST API', 'Java', 'Netbeans',
-  'Microsoft Access', 'NHibernate', 'Figma', 'Git', 'HTML5', 'CSS3'
-])
+// CV in PDF generati durante il deploy da scripts/build-cv.mjs (cartella cv/ del sito)
+const cvUrl = (lang) => `${import.meta.env.BASE_URL}cv/NisiixDev-CV-${lang}.pdf`
+const cvCurrent = computed(() => cvUrl(locale.value))
+const cvOther = computed(() => cvUrl(t('curriculum.downloadOtherLang')))
 </script>
 
 <style scoped>
+.cv-download {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
 /* Hero */
 /* Skill Categories */
 .skill-category {

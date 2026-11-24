@@ -8,7 +8,7 @@
       </router-link>
 
       <!-- Desktop Nav -->
-      <nav class="nav-links" id="main-navigation">
+      <nav class="nav-links" id="main-navigation" :aria-label="$t('nav.main')">
         <router-link
           v-for="link in navLinks"
           :key="link.name"
@@ -24,6 +24,7 @@
 
       <div class="nav-actions">
         <LangSwitcher />
+        <ThemeToggle />
 
       <!-- Mobile Hamburger -->
       <button
@@ -31,6 +32,7 @@
         id="hamburger-menu"
         @click="store.toggleNav()"
         :aria-expanded="store.isNavOpen"
+        aria-controls="mobile-menu"
         :aria-label="$t('nav.toggle')"
       >
         <span class="hamburger-line"></span>
@@ -45,7 +47,7 @@
 
     <!-- Mobile Menu -->
     <transition name="slide-down">
-      <div v-if="store.isNavOpen" class="mobile-menu">
+      <nav v-if="store.isNavOpen" id="mobile-menu" class="mobile-menu" :aria-label="$t('nav.menu')" @keydown.esc="closeMobile">
         <router-link
           v-for="link in navLinks"
           :key="link.name"
@@ -56,7 +58,7 @@
           <i :class="link.icon"></i>
           <span>{{ $t(link.label) }}</span>
         </router-link>
-      </div>
+      </nav>
     </transition>
   </header>
 </template>
@@ -66,6 +68,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useIndexStore } from '@/stores/index'
 import LangSwitcher from '@/components/LangSwitcher.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const store = useIndexStore()
 const isScrolled = ref(false)
@@ -88,6 +91,12 @@ function onLinkClick(link) {
   if (link.to.hash && route.hash === link.to.hash) {
     document.querySelector(link.to.hash)?.scrollIntoView({ behavior: 'smooth' })
   }
+}
+
+// Esc chiude il menu mobile e riporta il focus sul pulsante
+function closeMobile() {
+  store.closeNav()
+  document.getElementById('hamburger-menu')?.focus()
 }
 
 // Reset the progress bar after a page change
@@ -114,7 +123,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(10, 10, 10, 0.6);
+  background: var(--nav-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid transparent;
@@ -122,7 +131,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 }
 
 .navbar.scrolled {
-  background: rgba(10, 10, 10, 0.92);
+  background: var(--nav-bg-solid);
   border-bottom: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-md);
 }
@@ -201,7 +210,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 
 .nav-link:hover {
   color: var(--text-white);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-tint);
 }
 
 .nav-link.active {
@@ -287,7 +296,7 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   display: none;
   flex-direction: column;
   padding: 16px 24px 24px;
-  background: rgba(10, 10, 10, 0.98);
+  background: var(--menu-bg);
   border-top: 1px solid var(--border-subtle);
 }
 
