@@ -1,24 +1,28 @@
 // v-spin-title="testo": il titolo compare lettera per lettera, da sinistra a destra,
-// con ogni lettera che ruota su sé stessa, la prima volta che entra nello schermo.
+// con ogni lettera che ruota su sé stessa, ogni volta che entra nello schermo.
 // Gli screen reader leggono il testo intero; le lettere animate sono solo decorative.
 // Usare su un elemento senza contenuto: il testo arriva dal valore della direttiva.
-const STEP = 45 // ms tra una lettera e la successiva
+const STEP = 55 // ms tra una lettera e la successiva
 
-let observer = null
+// Due osservatori: uno fa partire l'animazione quando il titolo è entrato bene nello
+// schermo (non appena spunta dal bordo, quando lo sguardo è ancora altrove), l'altro la
+// riarma quando il titolo è uscito del tutto, così riparte ogni volta che si torna lì.
+let starter = null
+let resetter = null
 
-function getObserver() {
-  if (observer) return observer
-  observer = new IntersectionObserver(
+function observers() {
+  if (starter) return
+  starter = new IntersectionObserver(
     (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue
-        entry.target.classList.add('spin-in')
-        observer.unobserve(entry.target)
-      }
+      for (const e of entries) if (e.isIntersecting) e.target.classList.add('spin-in')
     },
-    { threshold: 0.1, rootMargin: '0px 0px -8% 0px' }
+    { threshold: 0.6, rootMargin: '0px 0px -18% 0px' }
   )
-  return observer
+  resetter = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) e.target.classList.remove('spin-in', 'spin-static')
+    }
+  })
 }
 
 function render(el, text) {
@@ -56,7 +60,11 @@ export const spinTitle = {
     render(el, String(value ?? ''))
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced || !('IntersectionObserver' in window)) el.classList.add('spin-in', 'spin-static')
-    else getObserver().observe(el)
+    else {
+      observers()
+      starter.observe(el)
+      resetter.observe(el)
+    }
   },
   updated(el, { value }) {
     // cambio lingua: nuovo testo, senza rifare l'animazione se era già comparso
@@ -67,6 +75,7 @@ export const spinTitle = {
     }
   },
   unmounted(el) {
-    observer?.unobserve(el)
+    starter?.unobserve(el)
+    resetter?.unobserve(el)
   }
 }
