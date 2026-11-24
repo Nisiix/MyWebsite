@@ -271,16 +271,21 @@ function flame(ctx, x, y, dx, dy, len, w, flicker) {
 
 // Ombra sul pavimento e fiammelle da piedi e mani. Le fiammelle partono dai punti del
 // modello 3D proiettati sullo schermo; senza modello 3D (immagine di riserva) solo l'ombra.
-function drawFlames(ctx, f, cell, clock, thrust, light, points) {
-  const u = cell * 0.5 * f.scale
+// Usata anche dai robottini di "Schiocca le dita" (size: altezza in celle, shadow: intensità
+// dell'ombra da 0 a 1).
+export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 1.5, shadow = 1 } = {}) {
+  const u = cell * (size / 3) * f.scale
   if (u <= 0) return
   // ombra staccata: sta volando
-  ctx.save()
-  ctx.fillStyle = light ? 'rgba(60, 30, 30, 0.13)' : 'rgba(0, 0, 0, 0.35)'
-  ctx.beginPath()
-  ctx.ellipse(f.x, f.y + cell * 1.15, u * 0.7, u * 0.14, 0, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.restore()
+  if (shadow > 0.02) {
+    ctx.save()
+    ctx.globalAlpha = shadow
+    ctx.fillStyle = light ? 'rgba(60, 30, 30, 0.13)' : 'rgba(0, 0, 0, 0.35)'
+    ctx.beginPath()
+    ctx.ellipse(f.x, f.y + cell * size * 0.77, u * 0.7, u * 0.14, 0, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.restore()
+  }
   if (!points) return
 
   const fl = (p) => 0.75 + 0.25 * Math.sin(clock * 38 + p) + Math.random() * 0.12

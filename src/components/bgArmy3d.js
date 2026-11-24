@@ -1,29 +1,31 @@
 // Esercito di Nova Ward 3D di "Schiocca le dita" (la logica dei movimenti è in bgSnap.js).
 //
-// Sono lo stesso modello 3D del robottino che vola, renderizzato in tempo reale, ma una
-// sessantina alla volta. Per restare fluidi:
+// Ogni robottino è identico al robottino che vola da solo: stesso modello, stessi materiali e
+// luci, stessa posa di volo (novaPose.js: vista di tre quarti, inclinazione nelle curve,
+// braccia e gambe che seguono velocità e accelerazione, testa che guarda il mouse), stessa
+// dimensione e le stesse fiammelle. Cambia solo il modo di disegnarli, per restare fluidi
+// anche quando sono una sessantina:
 // - un solo canvas WebGL per tutti, con InstancedMesh: ogni pezzo del modello è una sola
 //   chiamata di disegno per tutti i robottini;
 // - i pezzi rigidi attaccati alla stessa articolazione e con lo stesso materiale sono
 //   uniti in un'unica geometria (da 98 a una cinquantina di chiamate);
-// - le 23 sfere delle giunture e delle dita usano una versione con meno triangoli
-//   (a quella dimensione la differenza non si vede): da 10.440 a circa 4.900 triangoli;
-// - su schermi piccoli un modello senza i dettagli minuscoli (livello di dettaglio);
+// - su schermi piccoli (robottini alti una ventina di pixel) un modello senza i dettagli
+//   minuscoli e con le sfere alleggerite (livello di dettaglio);
 // - si ridisegna solo il rettangolo dello schermo dove ci sono robottini;
 // - renderer, geometrie e shader si preparano in anticipo, quando il browser è libero.
 // Senza WebGL (o con il contesto perso) bgSnap disegna l'immagine statica del personaggio.
 
 import { loadNova, makeRenderer, makeStage, MODEL_H, MODEL_CY } from './novaModel'
+import { rigNodes, flightPose, trackPointer, JETS } from './novaPose'
 
 const MAX = 96 // robottini al massimo (la scritta più lunga ne usa circa 60)
-const SIZE = 0.95 // altezza di un robottino, in celle
-const MAX_DPR = 1.5
-const SPHERE_TRIS = 320 // le sfere del GLB (icosfere): si sostituiscono con una da 80
+const SIZE = 1.35 // altezza di un robottino, in celle (quello che vola da solo è 1,5)
+const MAX_DPR = 2
+const SPHERE_TRIS = 320 // le sfere del GLB (icosfere): nel modello leggero diventano da 80
 // livello di dettaglio: con celle piccole (mobile) i robottini sono alti una ventina di pixel
 // e dita, prese d'aria e rifiniture non si vedono: si usa un modello senza
 const LOW_CELL = 34
 const DETAIL = /^(Finger|Thumb|Vent|Rib|Ab_|Jaw_vent|Brow|Temple_light|Shoulder_trim|Hip_trim|Shin_trim|Shin_panel|Gauntlet_panel|Boot_LED|Boot_toe|Chin)/
-const POSED = ['Body', 'Head', 'Shoulder_L', 'Shoulder_R', 'Elbow_L', 'Elbow_R', 'Hip_L', 'Hip_R', 'Knee_L', 'Knee_R']
 
 // Autovettori di una matrice 3x3 simmetrica (metodo di Jacobi): assi dell'ellissoide
 function eigenAxes(m) {
@@ -117,7 +119,7 @@ function mergeParts(THREE, rig, low) {
     const key = o.parent.uuid + '|' + o.material.uuid
     if (!groups.has(key)) groups.set(key, { node: o.parent, material: o.material, geos: [] })
     const tris = o.geometry.attributes.position.count / 3
-    let g = tris === SPHERE_TRIS && !o.geometry.index ? lowPolySphere(THREE, o.geometry) : o.geometry.clone()
+    let g = low && tris === SPHERE_TRIS && !o.geometry.index ? lowPolySphere(THREE, o.geometry) : o.geometry.clone()
     if (g.index) g = g.toNonIndexed()
     for (const name of Object.keys(g.attributes)) if (name !== 'position') g.deleteAttribute(name)
     g.applyMatrix4(o.matrix) // nello spazio dell'articolazione
@@ -143,7 +145,7 @@ function mergeParts(THREE, rig, low) {
 export function createArmy3D() {
   let host = null
   let state = 'idle' // idle | loading | ready | fallback
-  let THREE, renderer, canvas, scene, env, camera, rig, nodes, base, parts, glow
+  let THREE, renderer, canvas, scene, env, camera, rig, model, nodes, base, parts, glow
   let lods = null // { full: [...], low: [...] }
   let w = 0
   let h = 0
@@ -177,19 +179,17 @@ export function createArmy3D() {
       camera = new THREE.OrthographicCamera(0, 1, 0, -1, 1, 10000)
       camera.position.z = 5000
 
-      // scheletro da mettere in posa per ogni robottino; i pezzi si copiano nelle istanze
-      rig = nova.template.clone()
+      // scheletro da mettere in posa per ogni robottino; i pezzi si copiano nelle istanze.
+      // Come per il robottino che vola, ruota attorno al centro del corpo.
+      rig = new THREE.Group()
       rig.rotation.order = 'ZYX'
-      nodes = {}
-      base = new Map()
-      for (const name of POSED) {
-        const n = rig.getObjectByName(name)
-        if (!n) continue
-        nodes[name] = n
-        base.set(n, n.rotation.clone())
-      }
+      model = nova.template.clone()
+      model.position.y = -MODEL_CY
+      rig.add(model)
+      ;({ nodes, base } = rigNodes(model))
+      trackPointer()
       const build = (low) =>
-        mergeParts(THREE, rig, low).map((p) => {
+        mergeParts(THREE, model, low).map((p) => {
           const inst = new THREE.InstancedMesh(p.geometry, p.material, MAX)
           inst.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
           inst.frustumCulled = false
@@ -250,37 +250,13 @@ export function createArmy3D() {
     prev = null
   }
 
-  // Un robottino: in volo si piega verso dove va con le gambe che restano indietro e
-  // oscillano, fermo al suo posto respira, ondeggia e si guarda intorno.
-  function pose(r, t) {
-    for (const [n, rot] of base) n.rotation.copy(rot)
-    const m = r.moving
-    const ph = t * 7 + r.seed
-    const idle = 1 - m
-    const sway = Math.sin(t * 1.6 + r.seed)
-    const sw = m * Math.sin(ph)
-    if (nodes.Shoulder_L) {
-      nodes.Shoulder_L.rotation.z -= 0.3 + 0.12 * m + 0.03 * idle * sway
-      nodes.Shoulder_L.rotation.x += 0.35 * m + 0.12 * sw
-    }
-    if (nodes.Shoulder_R) {
-      nodes.Shoulder_R.rotation.z += 0.3 + 0.12 * m + 0.03 * idle * sway
-      nodes.Shoulder_R.rotation.x += 0.35 * m - 0.12 * sw
-    }
-    if (nodes.Elbow_L) nodes.Elbow_L.rotation.x -= 0.3 + 0.2 * m
-    if (nodes.Elbow_R) nodes.Elbow_R.rotation.x -= 0.3 + 0.2 * m
-    if (nodes.Hip_L) nodes.Hip_L.rotation.x += 0.45 * m + 0.16 * sw
-    if (nodes.Hip_R) nodes.Hip_R.rotation.x += 0.3 * m - 0.16 * sw
-    if (nodes.Knee_L) nodes.Knee_L.rotation.x -= 0.15 + 0.45 * m
-    if (nodes.Knee_R) nodes.Knee_R.rotation.x -= 0.1 + 0.35 * m
-    if (nodes.Head) nodes.Head.rotation.y += 0.2 * idle * Math.sin(t * 0.7 + r.seed * 2)
-    if (nodes.Body) nodes.Body.rotation.z += 0.03 * idle * sway
-  }
-
-  // robots: [{ x, y, yaw, lean: [lx, ly], moving (0..1), seed }] in pixel dello schermo
-  function draw(robots, view, t) {
+  // robots: [{ x, y (pixel sullo schermo), vx, vy, ax, ay (normalizzati), face, seed,
+  //   pose (stato della posa, da createPose), spin (giro della lettera, 0 se ferma) }]
+  // Dopo il disegno ogni robottino ha jets (punti delle fiammelle sullo schermo) e thrust.
+  function draw(robots, view, t, dt) {
     if (state !== 'ready') return false
     resize(view)
+    renderer.toneMappingExposure = view.light ? 0.95 : 1.05
     const cell = view.cell
     const want = cell < LOW_CELL ? lods.low : lods.full
     if (want !== parts) {
@@ -289,27 +265,40 @@ export function createArmy3D() {
       parts = want
     }
     const s = (cell * SIZE) / MODEL_H
+    const v = new THREE.Vector3()
     let i = 0
     let x0 = Infinity
     let y0 = Infinity
     let x1 = -Infinity
     let y1 = -Infinity
+    let thrust = 0
     for (const r of robots) {
+      r.jets = null
       if (i >= MAX) break
-      if (r.x < -cell || r.x > w + cell || r.y < -cell || r.y > h + cell) continue
-      pose(r, t)
-      const bob = Math.sin(t * 2.4 + r.seed) * cell * 0.04
+      if (r.x < -cell * 1.5 || r.x > w + cell * 1.5 || r.y < -cell * 1.5 || r.y > h + cell * 1.5) continue
+      const bob = (Math.sin(t * 2.1 + r.seed) + 0.4 * Math.sin(t * 3.7)) * cell * 0.02
       const y = r.y + bob
+      const body = flightPose(r.pose, nodes, base, { vx: r.vx, vy: r.vy, ax: r.ax, ay: r.ay, face: r.face, t: t + r.seed, x: r.x, y, cell }, dt)
+      r.thrust = body.thrust
+      thrust += body.thrust
       rig.scale.setScalar(s)
-      // il centro del modello sul centro della cella; chi è più in basso sta davanti
-      rig.position.set(r.x, -y - MODEL_CY * s, y)
-      rig.rotation.set(0.18 + r.lean[1] * 0.35, r.yaw, -r.lean[0] * 0.3)
+      // centro del corpo sul punto; chi è più in basso sta davanti
+      rig.position.set(r.x, -y, y)
+      rig.rotation.set(body.pitch, body.yaw + r.spin, body.roll)
       rig.updateMatrixWorld(true)
       for (const p of parts) p.inst.setMatrixAt(i, p.node.matrixWorld)
-      x0 = Math.min(x0, r.x - cell)
-      x1 = Math.max(x1, r.x + cell)
-      y0 = Math.min(y0, y - cell)
-      y1 = Math.max(y1, y + cell)
+      // punti delle fiammelle: la camera è in pixel dello schermo, basta cambiare segno a y
+      r.jets = {}
+      for (const key of JETS) {
+        const n = nodes[key]
+        if (!n) continue
+        n.getWorldPosition(v)
+        r.jets[key] = [v.x, -v.y]
+      }
+      x0 = Math.min(x0, r.x - cell * 1.2)
+      x1 = Math.max(x1, r.x + cell * 1.2)
+      y0 = Math.min(y0, y - cell * 1.2)
+      y1 = Math.max(y1, y + cell * 1.2)
       i++
     }
     if (!i) {
@@ -320,7 +309,7 @@ export function createArmy3D() {
       p.inst.count = i
       p.inst.instanceMatrix.needsUpdate = true
     }
-    for (const m of glow) m.emissiveIntensity = 1.3 + 0.15 * Math.sin(t * 2.3)
+    for (const m of glow) m.emissiveIntensity = 1.2 + 0.35 * (thrust / i) + 0.08 * Math.sin(t * 2.3)
 
     // si pulisce e ridisegna solo l'area con i robottini (più quella del fotogramma prima)
     const box = { x0: Math.max(0, x0), y0: Math.max(0, y0), x1: Math.min(w, x1), y1: Math.min(h, y1) }
@@ -350,7 +339,7 @@ export function createArmy3D() {
     lods = null
     env?.dispose()
     renderer?.dispose()
-    renderer = canvas = scene = camera = rig = parts = env = null
+    renderer = canvas = scene = camera = rig = model = parts = env = null
     w = h = 0
     prev = null
     state = 'idle'

@@ -10,6 +10,8 @@
 // si disegna l'immagine statica del personaggio.
 import { createArmy3D } from './bgArmy3d'
 import { fallbackUrl } from './novaModel'
+import { createPose } from './novaPose'
+import { drawFlames } from './bgFlyer'
 
 const SPEED = 4.2 // celle al secondo
 const RETURN_SPEED = 5
@@ -75,7 +77,8 @@ export function createArmy() {
           leaveAt: 0,
           done: false,
           seed: rand(0, 100),
-          yaw: left ? 1.2 : -1.2,
+          face: left ? 1 : -1,
+          pose: createPose(),
           col: tc,
           row: tr
         }
@@ -223,49 +226,59 @@ export function createArmy() {
   function draw(ctx, view, angleOf) {
     const dt = Math.min(Math.max(clock - lastDraw, 0), 0.1)
     lastDraw = clock
+    const acc = ACCEL * SPEED
     const robots = []
     for (const b of bears) {
       if (b.gone || !b.entered) continue
       let gx = b.x
-      const speed = Math.hypot(b.vx, b.vy)
-      const moving = Math.min(1, speed / (SPEED * 0.6))
-      // in volo guarda dove va, quasi fermo si gira verso chi legge
-      let target = moving > 0.25 ? Math.atan2(b.vx, b.vy) : 0
+      let spin = 0
       if (b.done) {
-        const spin = angleOf(...b.target)
-        if (spin) {
+        const s = angleOf(...b.target)
+        if (s) {
           // ruota insieme alla sua lettera, attorno all'asse verticale della lettera
-          gx = spin.axis + (gx + 0.5 - spin.axis) * Math.cos(spin.angle) - 0.5
-          target = spin.angle
-          b.yaw = target
+          gx = s.axis + (gx + 0.5 - s.axis) * Math.cos(s.angle) - 0.5
+          spin = s.angle
         }
       }
-      // si gira con morbidezza, dalla parte più corta
-      let d = target - b.yaw
-      d = Math.atan2(Math.sin(d), Math.cos(d))
-      b.yaw += d * Math.min(1, dt * 7)
-      b.move = (b.move ?? 0) + (moving - (b.move ?? 0)) * Math.min(1, dt * 6)
-      const sp = SPEED
-      const acc = ACCEL * SPEED
+      // guarda dalla parte verso cui vola (come il robottino singolo)
+      if (Math.abs(b.vx) > SPEED * 0.15) b.face = b.vx > 0 ? 1 : -1
+      const vx = b.vx / SPEED
+      const vy = b.vy / SPEED
+      const ax = b.ax / acc
+      const ay = b.ay / acc
       robots.push({
+        b,
         x: gx * view.cell + view.cell / 2,
         y: b.y * view.cell - view.gridScroll + view.cell / 2,
-        yaw: b.yaw,
-        // si inclina nel verso del moto e un po' di più quando accelera
-        lean: [
-          Math.max(-1.2, Math.min(1.2, b.vx / sp + (0.5 * b.ax) / acc)),
-          Math.max(-1, Math.min(1, b.vy / sp + (0.5 * b.ay) / acc))
-        ],
-        moving: b.move,
+        vx,
+        vy,
+        ax,
+        ay,
+        face: b.face,
         seed: b.seed,
-        flip: b.vx < 0
+        pose: b.pose,
+        spin,
+        // spinta delle fiammelle, come per il robottino singolo
+        thrust: Math.min(1, 0.25 * Math.hypot(vx, vy) + 0.75 * Math.min(1, Math.hypot(ax, ay))),
+        flip: b.face < 0
       })
     }
     if (!robots.length) {
       body.hide()
       return
     }
-    if (body.ready() && body.draw(robots, view, clock)) return
+    if (body.ready() && body.draw(robots, view, clock, dt)) {
+      // ombre e fiammelle sul canvas dello sfondo, sotto i robottini 3D
+      for (const r of robots) {
+        if (!r.jets) continue
+        const moving = Math.min(1, Math.hypot(r.vx, r.vy) * 1.5)
+        drawFlames(ctx, { x: r.x, y: r.y, face: r.face, scale: 1 }, view.cell, clock + r.seed, r.thrust, view.light, r.jets, {
+          size: 1.35,
+          shadow: moving
+        })
+      }
+      return
+    }
     // immagine statica solo se il 3D non c'è (senza WebGL) o non è ancora pronto
     body.hide()
     const img = getFallbackImg()
