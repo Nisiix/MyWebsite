@@ -118,9 +118,9 @@
               :class="{ copied }"
               @click="copyEmail"
               :aria-label="copied ? $t('home.copiedLabel') : $t('home.copyLabel')"
+              :title="copied ? $t('home.copiedLabel') : $t('home.copyLabel')"
             >
-              <i :class="copied ? 'pi pi-check' : 'pi pi-copy'"></i>
-              <span>{{ copied ? $t('home.copied') : $t('home.copy') }}</span>
+              <i :class="copied ? 'pi pi-check' : 'pi pi-copy'" aria-hidden="true"></i>
             </button>
           </div>
 
@@ -507,7 +507,7 @@ const hobbies = computed(() =>
 .contact-email {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px 20px;
   flex-wrap: wrap;
 }
 
@@ -533,7 +533,11 @@ const hobbies = computed(() =>
 }
 
 .btn-copy {
-  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .btn-copy.copied {
@@ -582,9 +586,6 @@ const hobbies = computed(() =>
     padding: 24px;
   }
 
-  .btn-copy {
-    margin-left: 0;
-  }
 
   .social-link {
     flex: 1 1 calc(50% - 6px);

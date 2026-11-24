@@ -65,8 +65,6 @@ export const messages = {
       ],
       contactsTitle: 'Contatti',
       contactsSubtitle: 'Hai un progetto in mente o vuoi solo fare due chiacchiere? Scrivimi.',
-      copy: 'Copia',
-      copied: 'Copiata',
       copyLabel: 'Copia email',
       copiedLabel: 'Email copiata'
     },
@@ -158,8 +156,6 @@ export const messages = {
       ],
       contactsTitle: 'Contact',
       contactsSubtitle: 'Have a project in mind or just want to chat? Get in touch.',
-      copy: 'Copy',
-      copied: 'Copied',
       copyLabel: 'Copy email',
       copiedLabel: 'Email copied'
     },
