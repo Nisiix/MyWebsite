@@ -42,13 +42,6 @@
                 <h3 class="skill-name">{{ skill.name }}</h3>
               </div>
 
-              <div class="skill-bar-track">
-                <div
-                  class="skill-bar-fill"
-                  :style="{ '--level': skill.level + '%' }"
-                ></div>
-              </div>
-
               <p class="skill-description">{{ $tr(skill.description) }}</p>
             </div>
           </div>
@@ -148,42 +141,6 @@ const techStack = ref([
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-white);
-}
-
-.skill-bar-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 14px;
-}
-
-.skill-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
-  border-radius: 3px;
-  width: 0;
-  transition: width 1.4s var(--ease-smooth) calc(var(--reveal-delay, 0ms) + 250ms);
-  position: relative;
-}
-
-/* Bars fill up when their card scrolls into view */
-.is-revealed .skill-bar-fill {
-  width: var(--level);
-}
-
-.skill-bar-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6px;
-  height: 6px;
-  background: var(--gold-light);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--gold-glow);
-  animation: pulseGlow 2s infinite;
 }
 
 .skill-description {
