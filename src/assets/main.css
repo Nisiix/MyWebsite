@@ -215,6 +215,45 @@ button {
   border-radius: 2px;
 }
 
+.spin-title .spin-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* ---- Titoli che si compongono ruotando, lettera per lettera (v-spin-title) ---- */
+.spin-title .spin-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: perspective(500px) rotateY(-270deg) translateX(-0.35em);
+  transform-origin: 50% 50%;
+  backface-visibility: visible;
+}
+.spin-title.spin-in .spin-letter {
+  animation: spin-letter 0.7s cubic-bezier(0.2, 0.7, 0.25, 1) var(--d) forwards;
+}
+.spin-title.spin-static .spin-letter {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+@keyframes spin-letter {
+  0% { opacity: 0; transform: perspective(500px) rotateY(-270deg) translateX(-0.35em); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: perspective(500px) rotateY(0) translateX(0); }
+}
+/* la riga dorata sotto il titolo si allunga quando le lettere sono al loro posto */
+.section-title.spin-title::after {
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.section-title.spin-title.spin-in::after {
+  transition: transform 0.5s ease-out calc(var(--spin-total) + 0.3s);
+  transform: scaleX(1);
+}
+.section-title.spin-title.spin-static::after {
+  transition: none;
+}
+
 .section-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);

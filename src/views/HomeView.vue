@@ -30,7 +30,7 @@
     <section class="section about-section" id="about-me">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>{{ $t('home.aboutTitle') }}</h2>
+          <h2 class="section-title" v-spin-title="$t('home.aboutTitle')"></h2>
           <p class="section-subtitle" v-reveal="1">{{ $t('home.aboutSubtitle') }}</p>
         </div>
 
@@ -59,7 +59,7 @@
     <section class="section activities-section" id="activities">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>{{ $t('home.activitiesTitle') }}</h2>
+          <h2 class="section-title" v-spin-title="$t('home.activitiesTitle')"></h2>
           <p class="section-subtitle" v-reveal="1">{{ $t('home.activitiesSubtitle') }}</p>
         </div>
 
@@ -81,7 +81,7 @@
     <section class="section hobbies-section" id="hobbies">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>{{ $t('home.hobbiesTitle') }}</h2>
+          <h2 class="section-title" v-spin-title="$t('home.hobbiesTitle')"></h2>
           <p class="section-subtitle" v-reveal="1">{{ $t('home.hobbiesSubtitle') }}</p>
         </div>
 
@@ -99,7 +99,7 @@
     <section class="section contacts-section" id="contatti">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title" v-reveal>{{ $t('home.contactsTitle') }}</h2>
+          <h2 class="section-title" v-spin-title="$t('home.contactsTitle')"></h2>
           <p class="section-subtitle" v-reveal="1">{{ $t('home.contactsSubtitle') }}</p>
         </div>
 

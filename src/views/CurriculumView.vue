@@ -34,7 +34,7 @@
             <div class="category-icon-wrapper">
               <i :class="category.icon"></i>
             </div>
-            <h2 class="category-title">{{ $tr(category.category) }}</h2>
+            <h2 class="category-title" v-spin-title="$tr(category.category)"></h2>
           </div>
 
           <div class="skills-list">
