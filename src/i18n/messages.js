@@ -33,6 +33,7 @@ export const messages = {
     home: {
       badge: 'Sviluppatore software',
       snap: 'Schiocca le dita',
+      snapText: 'Io sono ineluttabile',
       sacrifice: 'Sacrifica Iron Man',
       sacrificeText: 'Ti amo 3000',
       slideHint: 'trascina fino in fondo, oppure usa le frecce e premi Invio',
@@ -160,6 +161,7 @@ export const messages = {
     home: {
       badge: 'Software developer',
       snap: 'Snap your fingers',
+      snapText: 'I am inevitable',
       sacrifice: 'Sacrifice Iron Man',
       sacrificeText: 'I love you 3000',
       slideHint: 'drag all the way, or use the arrow keys and press Enter',

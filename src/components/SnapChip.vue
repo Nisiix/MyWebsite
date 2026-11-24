@@ -45,6 +45,7 @@
             :threshold="THRESHOLD"
             :label="`${labels.snap}: ${t('home.slideHint')}`"
             :done-text="labels.snap"
+            :fill-text="labels.inevitable"
             :ready-text="t('home.slideReady')"
             :charge-text="t('home.slideCharge')"
             @activate="onSnap"
@@ -87,7 +88,8 @@ const labels = computed(() => ({
   chip: t('home.badge'),
   snap: t('home.snap'),
   sacrifice: t('home.sacrifice'),
-  love: t('home.sacrificeText')
+  love: t('home.sacrificeText'),
+  inevitable: t('home.snapText')
 }))
 
 // la carta gira sempre di mezzo giro: la faccia visibile è turns % 2,
