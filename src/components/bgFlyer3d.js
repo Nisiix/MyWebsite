@@ -10,6 +10,7 @@ import { rigNodes, createPose, flightPose, trackPointer, JETS } from './novaPose
 const HEIGHT = 1.5 // altezza del personaggio, in celle della griglia
 const BOX = 2.6 // lato del canvas, in celle (lascia spazio a braccia e inclinazione)
 const MAX_DPR = 2
+const clamp = (v, m) => Math.max(-m, Math.min(m, v))
 
 export function createFlyer3D() {
   let host = null // livello a tutto schermo dentro lo sfondo
@@ -119,7 +120,7 @@ export function createFlyer3D() {
     if (state === 'fallback') {
       if (!img) return null
       place(img, x, y, px * f.scale * zoom)
-      img.style.transform += ` scaleX(${f.face})`
+      img.style.transform += ` rotate(${f.tumble || 0}rad) scaleX(${f.face})`
       return null
     }
     if (state !== 'ready') return null
@@ -145,11 +146,25 @@ export function createFlyer3D() {
       poseState,
       nodes,
       base,
-      { vx: f.vx / sp, vy: (f.vy + (f.lv || 0) * 0.6) / sp, ax: f.ax / acc, ay: f.ay / acc, face: f.face, t: clock + f.seed, x, y, cell },
+      // (velocità limitate: cadendo va molto più veloce che in volo)
+      {
+        vx: clamp(f.vx / sp, 1.5),
+        vy: clamp((f.vy + (f.lv || 0) * 0.6) / sp, 1.5),
+        ax: f.ax / acc,
+        ay: f.ay / acc,
+        face: f.face,
+        t: clock + f.seed,
+        x,
+        y,
+        cell
+      },
       dt
     )
-    pivot.rotation.set(body.pitch, body.yaw, body.roll, 'ZYX')
-    for (const m of glow) m.emissiveIntensity = 1.2 + 0.35 * body.thrust + 0.08 * Math.sin((clock + f.seed) * 2.3)
+    // cadendo a propulsori spenti si gira su se stesso (tumble)
+    pivot.rotation.set(body.pitch, body.yaw, body.roll + (f.tumble || 0), 'ZYX')
+    // a propulsori spenti anche le luci si affievoliscono
+    const fuel = f.fuel ?? 1
+    for (const m of glow) m.emissiveIntensity = (1.2 + 0.35 * body.thrust * fuel + 0.08 * Math.sin((clock + f.seed) * 2.3)) * (0.45 + 0.55 * fuel)
     renderer.render(scene, camera)
 
     // punti delle fiammelle, proiettati sullo schermo

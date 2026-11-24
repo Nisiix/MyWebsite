@@ -2,7 +2,11 @@
 // Entra da un bordo laterale, vola liberamente nello schermo visibile da un punto all'altro
 // girando intorno alla scritta, poi esce dal bordo più vicino. Ogni tanto, a caso, invece di
 // girarci intorno sorvola la scritta: prende quota prima dei blocchi (si alza sullo schermo,
-// sembra un po' più vicino, l'ombra resta a terra e si fa più tenue) e riscende dopo. Mentre si sposta, da mani e
+// sembra un po' più vicino, l'ombra resta a terra e si fa più tenue) e riscende dopo.
+// Con "Schiocca le dita", se sta volando, continua ancora un paio di secondi, poi i propulsori
+// di mani e piedi tossiscono e si spengono e cade fuori dallo schermo come i blocchi. Finché
+// non si sacrifica Iron Man non ne arrivano altri; dopo torna a volare (se sta ancora
+// cadendo dentro lo schermo riaccende i propulsori e si riprende). Mentre si sposta, da mani e
 // piedi escono fiammelle bianco-celeste.
 // Il personaggio è il modello 3D Nova Ward, disegnato da bgFlyer3d.js; qui ci sono il volo,
 // l'ombra e le fiammelle.
@@ -21,6 +25,10 @@ const OVER_CHANCE = 0.4 // probabilità che un tratto sorvoli la scritta invece 
 const CLIMB = 0.85 // quota sopra la scritta, in celle (spostamento verso l'alto sullo schermo)
 const CLIMB_FROM = 2.4 // celle dalla scritta a cui inizia a salire
 const CLIMB_ZOOM = 0.14 // in quota sembra un po' più vicino
+const SHUTDOWN_DELAY = 2.5 // s dopo lo schiocco prima che i propulsori si spengano
+const SPUTTER = 0.55 // s in cui i propulsori tossiscono e si spengono, prima della caduta libera
+const GRAVITY = 2400 // px/s², la stessa dei blocchi e delle lettere
+const RELIGHT = 0.4 // s per riaccendere i propulsori dopo "Sacrifica Iron Man"
 
 const rand = (a, b) => a + Math.random() * (b - a)
 
@@ -47,6 +55,7 @@ export function createFlyer() {
   let f = null
   let nextSpawn = rand(2, 4) // il primo arriva poco dopo l'ingresso nella home
   let clock = 0
+  let powered = true // false dopo lo schiocco: niente nuovi voli
 
   function spawn(view) {
     const fromLeft = Math.random() < 0.5
@@ -73,7 +82,14 @@ export function createFlyer() {
       face: fromLeft ? 1 : -1,
       over: false, // il tratto in corso sorvola la scritta
       alt: 0, // quota da 0 (normale) a 1 (sopra i blocchi), con la sua velocità
-      altV: 0
+      altV: 0,
+      fuel: 1, // propulsori: 1 accesi, 0 spenti
+      shutAt: 0, // istante in cui si spengono (0 = mai)
+      down: false, // propulsori spenti: cade
+      downAt: 0,
+      relightAt: 0, // istante in cui si sono riaccesi, per la ripresa
+      tumble: 0, // rotazione mentre cade, con la sua velocità
+      tumbleV: 0
     }
     pickTarget(view)
   }
@@ -136,6 +152,35 @@ export function createFlyer() {
     f.exiting = true
   }
 
+  // "Schiocca le dita": se sta volando, tra poco si spegne e cade
+  function powerOff() {
+    powered = false
+    if (f && !f.down && !f.shutAt) f.shutAt = clock + SHUTDOWN_DELAY
+  }
+
+  // "Sacrifica Iron Man": torna a volare. Se sta ancora per spegnersi non succede nulla; se
+  // sta cadendo dentro lo schermo riaccende i propulsori e si riprende; altrimenti ne arriva
+  // uno nuovo tra qualche secondo.
+  function powerOn(view) {
+    if (powered) return
+    powered = true
+    if (f) {
+      f.shutAt = 0
+      if (f.down) {
+        // si riprende solo se è ancora abbastanza in alto da farcela
+        if (view && f.y < view.height * 0.6) {
+          f.down = false
+          f.recovering = true
+          f.relightAt = clock
+          f.exiting = false
+          f.age = Math.min(f.age, f.life - 4) // un po' di volo prima di uscire
+          f.needTarget = true
+        }
+      }
+    }
+    if (!f || f.down) nextSpawn = rand(3, 5)
+  }
+
   function update(dt, view) {
     // con "riduci movimento" attivo il robottino non vola
     if (!view.active || reducedMotion()) {
@@ -147,6 +192,7 @@ export function createFlyer() {
     lastDt = dt
     if (!f) {
       body.hide()
+      if (!powered) return false
       nextSpawn -= dt
       // parte solo quando il modello 3D (o l'immagine di riserva) è pronto
       if (nextSpawn <= 0 && body.ready()) {
@@ -156,6 +202,23 @@ export function createFlyer() {
       return !!f
     }
     f.age += dt
+    if (f.shutAt && clock >= f.shutAt) {
+      f.shutAt = 0
+      f.down = true
+      f.downAt = clock
+      f.hover = 0
+      f.over = false
+      f.tumbleV = rand(0.8, 1.6) * (Math.random() < 0.5 ? -1 : 1)
+    }
+    if (f.down) {
+      fallStep(dt, view)
+      if (f.y > view.height + view.cell * 2.5) f = null
+      return true
+    }
+    if (f.needTarget) {
+      f.needTarget = false
+      pickTarget(view)
+    }
     if (f.age > f.life && !f.exiting) pickExit(view)
     if (f.age > f.life + EXIT_TIMEOUT) f.scale = Math.max(0, f.scale - dt / 0.35)
 
@@ -166,8 +229,12 @@ export function createFlyer() {
       left -= h
       step(h, view)
     }
-    // resta nello schermo visibile (tranne quando entra o esce dai lati)
-    f.y = Math.min(Math.max(f.y, NAV + view.cell * 0.5), view.height - view.cell * 0.5)
+    // resta nello schermo visibile (tranne quando entra o esce dai lati); appena riacceso
+    // dopo una caduta può finire sotto il bordo e risale da solo
+    const bottom = view.height - view.cell * 0.5
+    f.y = Math.max(f.y, NAV + view.cell * 0.5)
+    if (f.recovering && f.y <= bottom && f.vy <= 0) f.recovering = false
+    if (!f.recovering) f.y = Math.min(f.y, bottom)
     if (Math.abs(f.vx) > SPEED * view.cell * 0.15) f.face = f.vx > 0 ? 1 : -1
     if (f.gone || f.scale <= 0) f = null
     return true
@@ -175,11 +242,46 @@ export function createFlyer() {
 
   let lastDt = 0
 
+  // Propulsori spenti: prima tossiscono e si affievoliscono (scende appena), poi cade con la
+  // stessa gravità dei blocchi, conservando un po' dello slancio orizzontale e girandosi piano.
+  function fallStep(dt, view) {
+    let left = dt
+    while (left > 0) {
+      const h = Math.min(left, 1 / 60)
+      left -= h
+      const t = clock - f.downAt - left
+      const k = Math.min(1, t / SPUTTER)
+      f.fuel = t < SPUTTER ? (1 - k) * (Math.random() < 0.35 ? 0.25 : 1) : 0
+      const ay = GRAVITY * (k < 1 ? 0.12 * k : 1)
+      const ax = -f.vx * 0.8 // l'aria frena lo slancio orizzontale
+      f.vx += ax * h
+      f.vy += ay * h
+      f.x += f.vx * h
+      f.y += f.vy * h
+      const sa = Math.min(1, h * 8)
+      f.ax += (ax - f.ax) * sa
+      f.ay += (ay - f.ay) * sa
+      // rotazione: parte piano e accelera un poco
+      if (t > SPUTTER) f.tumbleV *= 1 + h * 0.8
+      f.tumble += f.tumbleV * Math.min(1, Math.max(0, t - SPUTTER * 0.6) * 2) * h
+      // la quota del sorvolo si azzera
+      f.altV += (7 * -f.alt - 2 * Math.sqrt(7) * 0.9 * f.altV) * h
+      f.alt += f.altV * h
+    }
+  }
+
   // Un passo di volo: si calcola la velocità desiderata e ci si arriva con accelerazione
   // limitata, così parte, frena e curva con un po' di inerzia.
   function step(dt, view) {
     const cell = view.cell
     const speed = SPEED * cell
+    // appena riacceso frena la caduta con più forza
+    const boost = f.recovering && f.vy > 0 ? 4 : 1
+    if (f.fuel < 1) f.fuel = Math.min(1, (clock - f.relightAt) / RELIGHT)
+    if (f.tumble) {
+      f.tumble *= Math.max(0, 1 - dt * 4)
+      if (Math.abs(f.tumble) < 1e-3) f.tumble = 0
+    }
     const dx = f.tx - f.x
     const dy = f.ty - f.y
     const dist = Math.hypot(dx, dy)
@@ -241,7 +343,7 @@ export function createFlyer() {
     let ax = (wx - f.vx) * steer
     let ay = (wy - f.vy) * steer
     const am = Math.hypot(ax, ay)
-    const max = ACCEL * speed
+    const max = ACCEL * speed * boost
     if (am > max) {
       ax *= max / am
       ay *= max / am
@@ -283,24 +385,32 @@ export function createFlyer() {
     // verso l'alto, quindi spinge con i palmi verso il basso
     f.lv = -f.altV * CLIMB * view.cell
     // spinta: un po' per restare in aria, di più quando accelera e quando prende quota
-    const thrust = Math.min(
-      1,
-      0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp) + 0.5 * Math.max(0, f.altV) + 0.1 * alt
-    )
+    const thrust = f.down
+      ? 0
+      : Math.min(
+          1,
+          0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp) + 0.5 * Math.max(0, f.altV) + 0.1 * alt
+        )
     const bob = (Math.sin(clock * 2.1 + f.seed) + 0.4 * Math.sin(clock * 3.7)) * view.cell * 0.02
     const lift = alt * CLIMB * view.cell
     const points = body.draw(f, f.x, f.y + bob - lift, view.cell, clock, thrust, view.light, lastDt, true, 1 + CLIMB_ZOOM * alt)
     // l'ombra resta a terra sotto il percorso: più in alto vola, più è larga e tenue
-    drawFlames(ctx, f, view.cell, clock, thrust, view.light, points, { shadow: 1 - 0.6 * alt, spread: 1 + 0.5 * alt })
+    const fading = f.down ? Math.max(0, 1 - (clock - f.downAt - SPUTTER) * 2.5) : 1
+    drawFlames(ctx, f, view.cell, clock, thrust, view.light, points, {
+      shadow: (1 - 0.6 * alt) * Math.min(1, fading),
+      spread: 1 + 0.5 * alt,
+      fuel: f.fuel
+    })
   }
 
   function reset() {
     f = null
+    powered = true
     nextSpawn = rand(2, 4)
     body.hide()
   }
 
-  return { update, draw, reset, mount: body.mount, dispose: body.dispose }
+  return { update, draw, reset, powerOff, powerOn, mount: body.mount, dispose: body.dispose }
 }
 
 // Fiammella che esce da (x, y) nella direzione (dx, dy): nucleo bianco, bordo celeste
@@ -332,7 +442,7 @@ function flame(ctx, x, y, dx, dy, len, w, flicker) {
 // modello 3D proiettati sullo schermo; senza modello 3D (immagine di riserva) solo l'ombra.
 // size: altezza in celle, shadow: intensità dell'ombra da 0 a 1, spread: allargamento
 // dell'ombra (più il robottino è alto, più è larga).
-export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 1.5, shadow = 1, spread = 1 } = {}) {
+export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 1.5, shadow = 1, spread = 1, fuel = 1 } = {}) {
   const u = cell * (size / 3) * f.scale
   if (u <= 0) return
   // ombra staccata: sta volando
@@ -345,12 +455,12 @@ export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 
     ctx.fill()
     ctx.restore()
   }
-  if (!points) return
+  if (!points || fuel <= 0.02) return
 
   const fl = (p) => 0.75 + 0.25 * Math.sin(clock * 38 + p) + Math.random() * 0.12
   // le fiamme spingono all'indietro e verso il basso
   const back = -f.face * thrust * 0.6
-  const power = (0.45 + thrust * 0.75) * f.scale
+  const power = (0.45 + thrust * 0.75) * f.scale * fuel
   const jets = [
     ['Sole_L', 0, 1.0, 0.16, 0],
     ['Sole_R', 0, 1.0, 0.16, 2],

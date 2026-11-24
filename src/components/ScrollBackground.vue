@@ -396,9 +396,9 @@ function draw() {
   // tra un battito e l'altro (pagina ferma, nessun personaggino) passa fino a un secondo
   const critterDt = Math.min(now - (critterFrame || now), 1200) / 1000
   critterFrame = now
-  const snapBusy = wordFx.mode !== 'none'
+  // dopo lo schiocco il robottino non sparisce: si spegne e cade (vedi powerOff in bgFlyer.js)
   const view = {
-    active: route.name === 'home' && !snapBusy,
+    active: route.name === 'home',
     width,
     height,
     cell: CELL,
@@ -606,6 +606,9 @@ watch(snap, ({ mode, instant }) => {
   const now = performance.now()
   clearTimeout(readyTimer)
   snapReady.value = false
+  // il robottino: dopo lo schiocco si spegne e cade, dopo il sacrificio torna a volare
+  if (mode === 'snapped') critters.powerOff()
+  else critters.powerOn({ height, cell: CELL })
   if (mode === 'snapped') {
     if (!wordCells) {
       snapReady.value = true
