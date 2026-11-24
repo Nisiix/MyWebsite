@@ -587,6 +587,7 @@ let resizeObserver = null
 onMounted(() => {
   ctx = canvas.value.getContext('2d')
   critters.mount(flyerLayer.value)
+  army.mount(flyerLayer.value)
   // il personaggio 3D si scarica quando la pagina è già mostrata e il browser è libero
   if (route.name === 'home') preloadNovaWhenIdle(() => army.prepare())
   resize()
@@ -682,6 +683,15 @@ onUnmounted(() => {
   inset: 0;
   mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
   -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 90%);
+}
+
+.flyer-layer :deep(.army-3d) {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
 }
 
 .flyer-layer :deep(.flyer-3d) {

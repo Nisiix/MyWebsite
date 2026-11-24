@@ -9,8 +9,9 @@ export { fallbackUrl }
 export const MODEL_H = 3.45 // altezza del modello in unità del GLB
 export const MODEL_CY = 1.72 // centro verticale del modello
 
-// armatura più rossa del GLB originale, che tende al rosa
-const REDS = { 'Crimson enamel': 0xc8101c, 'Scarlet panel': 0xe01b26, 'Deep red': 0x7e0912 }
+// armatura più rossa del GLB originale, che tende al rosa; davanti e dietro lo stesso rosso
+// (i pannelli "Scarlet" davanti erano più chiari della schiena)
+const REDS = { 'Crimson enamel': 0xc8101c, 'Scarlet panel': 0xc8101c, 'Deep red': 0x7e0912 }
 
 let promise = null
 
@@ -48,6 +49,8 @@ export function makeStage(THREE, RoomEnvironment, renderer) {
   const room = new RoomEnvironment()
   const env = pmrem.fromScene(room, 0.04)
   scene.environment = env.texture
+  // riflessi dell'ambiente più tenui: sulla parte davanti schiarivano il rosso
+  scene.environmentIntensity = 0.5
   room.dispose()
   pmrem.dispose()
   scene.add(new THREE.HemisphereLight(0xe4f5ff, 0x48273c, 1.1))
@@ -56,7 +59,7 @@ export function makeStage(THREE, RoomEnvironment, renderer) {
     l.position.set(...pos)
     scene.add(l)
   }
-  light(0xfff1e1, 2.6, [3, 6, 5])
+  light(0xffe0c0, 1.4, [3, 6, 5]) // luce principale, davanti: calda e non troppo forte
   light(0x3acaff, 2.4, [-4, 3, -2])
   light(0xff344b, 1.2, [4, 2, -4])
   return { scene, env }
