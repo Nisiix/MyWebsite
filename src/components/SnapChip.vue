@@ -54,6 +54,7 @@
             :ref="(c) => (swipes[i] = c)"
             :threshold="THRESHOLD"
             :disabled="waiting"
+            :fill-text="labels.love"
             :label="`${labels.sacrifice}: ${t('home.slideHint')}`"
             :done-text="labels.sacrifice"
             :ready-text="t('home.slideReady')"
@@ -80,11 +81,13 @@ const FALL_DELAY = 200 // ms: il lampo del gesto parte prima che il pulsante cad
 // altezza dello slider nel suo disegno (--size 46px + 2 × --pad 6px, vedi CSS): viene
 // rimpicciolito in proporzione fino all'altezza della chip, con la stessa grafica
 const SLIDER_H = 58
+const APPEAR_MS = 2400 // ricomparsa lenta e progressiva del pulsante (uguale al CSS)
 
 const labels = computed(() => ({
   chip: t('home.badge'),
   snap: t('home.snap'),
-  sacrifice: t('home.sacrifice')
+  sacrifice: t('home.sacrifice'),
+  love: t('home.sacrificeText')
 }))
 
 // la carta gira sempre di mezzo giro: la faccia visibile è turns % 2,
@@ -174,7 +177,7 @@ function fall() {
 function appear() {
   phase.value = 'appearing'
   clearTimeout(phaseTimer)
-  phaseTimer = setTimeout(() => (phase.value = ''), 900)
+  phaseTimer = setTimeout(() => (phase.value = ''), APPEAR_MS)
 }
 
 // la scritta è di nuovo completa: il pulsante riappare al suo posto
@@ -256,7 +259,8 @@ onUnmounted(() => {
   pointer-events: none;
 }
 .snap-chip.is-appearing {
-  animation: chip-appear 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  /* lenta e progressiva: la durata è APPEAR_MS nello script */
+  animation: chip-appear 2.4s cubic-bezier(0.45, 0, 0.25, 1) both;
 }
 @keyframes chip-fall {
   from { transform: translateY(0) rotate(0); }

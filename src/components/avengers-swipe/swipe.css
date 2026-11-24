@@ -32,3 +32,9 @@
 .av-swipe[data-mode=ironman] .av-meter{left:18px}
 .av-swipe[data-mode=ironman] .av-meter i{transform-origin:right}
 .av-swipe[data-disabled=true][data-phase=success]{opacity:1}
+
+/* Adattamento al sito: testo (prop fillText) centrato nel componente, visibile solo dove è
+   arrivato il riempimento colorato, con il font del sito */
+.av-fill-text{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-body,inherit);font-weight:700;font-size:calc(var(--size) * .4);letter-spacing:.02em;line-height:1;color:#fff;text-shadow:0 1px 2px #5a0610cc,0 0 10px #ff8a7a99;white-space:nowrap;pointer-events:none;clip-path:inset(0 0 0 calc((1 - var(--p)) * 100%))}
+.av-swipe[data-mode=thanos] .av-fill-text{clip-path:inset(0 calc((1 - var(--p)) * 100%) 0 0)}
+.av-swipe[data-phase=idle] .av-fill-text{transition:clip-path .3s ease}

@@ -122,7 +122,9 @@ function hash(col, row, seed) {
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
   let word = 0
-  const cell = wordFx.mode === 'none' ? wordCells?.get(`${col}:${row}`) : null
+  const key = `${col}:${row}`
+  // durante lo schiocco restano alzati i blocchi della scritta che non sono caduti
+  const cell = wordFx.mode !== 'none' && wordFx.cells?.has(key) ? null : wordCells?.get(key)
   if (cell && wordElapsed >= cell.delay) {
     const w = Math.max(0, 1 - scrollY / WORD_FADE)
     word = WORD_LIFT * w * w
@@ -199,8 +201,9 @@ let lastPointer = null // ultima posizione del mouse nelle coordinate della grig
 let lastFrame = 0
 
 // ---- "Schiocca le dita" (pulsante in home) ----
-// I blocchi della scritta cadono fuori dallo schermo; al ritorno risalgono con il movimento
-// inverso. Le lettere dei testi della home cadono a parte (vedi src/snap/letterFall.js).
+// Metà dei blocchi della scritta, scelti a caso (circa metà per ogni lettera), cade fuori
+// dallo schermo; gli altri restano al loro posto. Al ritorno risalgono con il movimento
+// inverso solo quelli caduti. Le lettere dei testi della home cadono a parte (vedi src/snap/letterFall.js).
 const GRAVITY = 2400 // px/s²
 let readyTimer = 0
 // tau: tempo della caduta in secondi (0 = scritta al suo posto, end = tutti i blocchi fuori)
@@ -208,11 +211,37 @@ const wordFx = { mode: 'none', cells: null, end: 0, tau0: 0, dir: 1, start: 0 }
 
 const fxTau = (now) => wordFx.tau0 + (wordFx.dir * (now - wordFx.start)) / 1000
 
+// Esattamente metà dei blocchi (arrotondata), divisa il più possibile in parti uguali tra
+// le lettere, così ogni lettera resta riconoscibile a metà
+function pickFalling() {
+  const byLetter = new Map()
+  for (const [key, cell] of wordCells) {
+    if (!byLetter.has(cell.letter)) byLetter.set(cell.letter, [])
+    byLetter.get(cell.letter).push(key)
+  }
+  const chosen = []
+  let quota = Math.random() * 0.5 // sfasa l'arrotondamento: le lettere dispari non perdono sempre lo stesso numero di blocchi
+  let taken = 0
+  for (const keys of byLetter.values()) {
+    quota += keys.length / 2
+    const take = Math.round(quota) - taken
+    taken += take
+    for (let i = keys.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[keys[i], keys[j]] = [keys[j], keys[i]]
+    }
+    chosen.push(...keys.slice(0, take))
+  }
+  return new Set(chosen)
+}
+
 function startFall(now) {
   const gridScroll = window.scrollY * PARALLAX
   const cells = new Map()
+  const falling = pickFalling()
   let end = 0
   for (const [key, cell] of wordCells) {
+    if (!falling.has(key)) continue
     const [col, row] = key.split(':').map(Number)
     const y0 = row * CELL - gridScroll
     const drop = height - y0 + CELL * 2

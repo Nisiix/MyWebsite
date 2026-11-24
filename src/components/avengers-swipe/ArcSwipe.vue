@@ -8,7 +8,8 @@ const props = defineProps({
   label: { type: String, default: '' },
   doneText: { type: String, default: '' },
   readyText: { type: String, default: '' },
-  chargeText: { type: String, default: '' }
+  chargeText: { type: String, default: '' },
+  fillText: { type: String, default: '' }
 })
 const emit = defineEmits(['activate', 'animation-end'])
 const control = ref(null)
@@ -16,5 +17,5 @@ defineExpose({ reset: () => control.value?.reset(), focus: () => control.value?.
 </script>
 <template>
   <SwipeBase ref="control" side="ironman" :threshold="props.threshold" :disabled="props.disabled" :label="props.label"
-    :done-text="props.doneText" :ready-text="props.readyText" :charge-text="props.chargeText" @activate="emit('activate')" @animation-end="emit('animation-end')" />
+    :done-text="props.doneText" :ready-text="props.readyText" :charge-text="props.chargeText" :fill-text="props.fillText" @activate="emit('activate')" @animation-end="emit('animation-end')" />
 </template>
