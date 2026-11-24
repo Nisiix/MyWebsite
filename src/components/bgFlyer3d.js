@@ -113,11 +113,12 @@ export function createFlyer3D() {
 
   // Disegna il personaggio centrato in (x, y). Restituisce i punti da cui escono le
   // fiammelle (piedi e mani) in coordinate dello schermo, o null.
-  function draw(f, x, y, cell, clock, thrust, light, dt, motion) {
+  // zoom: un po' più grande quando vola più in alto (più vicino a chi guarda)
+  function draw(f, x, y, cell, clock, thrust, light, dt, motion, zoom = 1) {
     const px = Math.round(cell * BOX)
     if (state === 'fallback') {
       if (!img) return null
-      place(img, x, y, px * f.scale)
+      place(img, x, y, px * f.scale * zoom)
       img.style.transform += ` scaleX(${f.face})`
       return null
     }
@@ -136,7 +137,7 @@ export function createFlyer3D() {
       poseState = createPose()
     }
 
-    pivot.scale.setScalar(Math.max(0.001, f.scale))
+    pivot.scale.setScalar(Math.max(0.001, f.scale * zoom))
     renderer.toneMappingExposure = light ? 0.95 : 1.05
     const sp = cell * 2.6
     const acc = sp * 2.4
@@ -144,7 +145,7 @@ export function createFlyer3D() {
       poseState,
       nodes,
       base,
-      { vx: f.vx / sp, vy: f.vy / sp, ax: f.ax / acc, ay: f.ay / acc, face: f.face, t: clock + f.seed, x, y, cell },
+      { vx: f.vx / sp, vy: (f.vy + (f.lv || 0) * 0.6) / sp, ax: f.ax / acc, ay: f.ay / acc, face: f.face, t: clock + f.seed, x, y, cell },
       dt
     )
     pivot.rotation.set(body.pitch, body.yaw, body.roll, 'ZYX')

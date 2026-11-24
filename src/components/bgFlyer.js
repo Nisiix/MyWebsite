@@ -1,6 +1,8 @@
 // Robottino corazzato che vola nello sfondo della home.
 // Entra da un bordo laterale, vola liberamente nello schermo visibile da un punto all'altro
-// girando intorno alla scritta, poi esce dal bordo più vicino. Mentre si sposta, da mani e
+// girando intorno alla scritta, poi esce dal bordo più vicino. Ogni tanto, a caso, invece di
+// girarci intorno sorvola la scritta: prende quota prima dei blocchi (si alza sullo schermo,
+// sembra un po' più vicino, l'ombra resta a terra e si fa più tenue) e riscende dopo. Mentre si sposta, da mani e
 // piedi escono fiammelle bianco-celeste.
 // Il personaggio è il modello 3D Nova Ward, disegnato da bgFlyer3d.js; qui ci sono il volo,
 // l'ombra e le fiammelle.
@@ -15,6 +17,10 @@ const PAUSE = [6, 14] // secondi tra un'uscita e il rientro successivo
 const HOVER = [0.6, 2.2] // secondi fermo a mezz'aria a ogni tappa
 const EXIT_TIMEOUT = 15 // secondi massimi per uscire, poi sparisce sul posto
 const NAV = 80 // px della barra di navigazione in alto
+const OVER_CHANCE = 0.4 // probabilità che un tratto sorvoli la scritta invece di girarci intorno
+const CLIMB = 0.85 // quota sopra la scritta, in celle (spostamento verso l'alto sullo schermo)
+const CLIMB_FROM = 2.4 // celle dalla scritta a cui inizia a salire
+const CLIMB_ZOOM = 0.14 // in quota sembra un po' più vicino
 
 const rand = (a, b) => a + Math.random() * (b - a)
 
@@ -64,13 +70,19 @@ export function createFlyer() {
       age: 0,
       life: rand(...LIFE),
       scale: 1,
-      face: fromLeft ? 1 : -1
+      face: fromLeft ? 1 : -1,
+      over: false, // il tratto in corso sorvola la scritta
+      alt: 0, // quota da 0 (normale) a 1 (sopra i blocchi), con la sua velocità
+      altV: 0
     }
     pickTarget(view)
   }
 
   // prossima tappa: un punto libero dello schermo raggiungibile senza passare sulla scritta
+  // (o, ogni tanto, passandoci sopra)
   function pickTarget(view) {
+    f.over = false
+    if (view.avoid && Math.random() < OVER_CHANCE && pickOver(view)) return
     const m = view.cell * 0.8
     let best = null
     for (let i = 0; i < 40; i++) {
@@ -85,6 +97,27 @@ export function createFlyer() {
     if (best) [f.tx, f.ty] = best
     // ogni tratto è un arco, piegato da una parte o dall'altra
     f.curve = rand(0.25, 0.7) * (Math.random() < 0.5 ? -1 : 1)
+  }
+
+  // tappa dall'altra parte della scritta: il tratto la sorvola. La tappa resta ben lontana dai
+  // blocchi, così dopo averli passati riscende.
+  function pickOver(view) {
+    const r = view.avoid
+    const m = view.cell * 1.6
+    for (let i = 0; i < 40; i++) {
+      const tx = rand(view.cell * 0.8, view.width - view.cell * 0.8)
+      const ty = rand(NAV + view.cell * 0.8, view.height - view.cell * 0.8)
+      if (tx > r.x0 - m && tx < r.x1 + m && ty > r.y0 - m && ty < r.y1 + m) continue
+      if (Math.hypot(tx - f.x, ty - f.y) < view.width * 0.3) continue
+      if (!crosses(f.x, f.y, tx, ty, r, -view.cell * 0.5)) continue
+      f.tx = tx
+      f.ty = ty
+      f.over = true
+      // arco più dolce: deve passare davvero sopra i blocchi
+      f.curve = rand(0.08, 0.3) * (Math.random() < 0.5 ? -1 : 1)
+      return true
+    }
+    return false
   }
 
   // uscita: verso il bordo laterale più vicino, sopra o sotto la scritta se è in mezzo
@@ -172,6 +205,7 @@ export function createFlyer() {
         f.hover = rand(...HOVER)
         f.hx = f.x
         f.hy = f.y
+        f.over = false // sorvolo finito: mentre è sospeso riscende alla quota normale
       }
     } else {
       // frena dolcemente in arrivo (curva a S), parte con slancio
@@ -187,9 +221,9 @@ export function createFlyer() {
       wx = (ux * c - uy * s) * speed * k
       wy = (ux * s + uy * c) * speed * k
     }
-    // tiene le distanze dalla scritta
+    // tiene le distanze dalla scritta (tranne quando la sorvola)
     const r = view.avoid
-    if (r && !f.exiting) {
+    if (r && !f.exiting && !f.over) {
       const m = cell * 0.9
       const nx = Math.min(Math.max(f.x, r.x0), r.x1)
       const ny = Math.min(Math.max(f.y, r.y0), r.y1)
@@ -220,6 +254,22 @@ export function createFlyer() {
     const sa = Math.min(1, dt * 8)
     f.ax += (ax - f.ax) * sa
     f.ay += (ay - f.ay) * sa
+
+    // quota: sale con anticipo avvicinandosi alla scritta e riscende dopo averla passata,
+    // con una molla smorzata (niente scatti, un leggero assestamento)
+    // (anche uscendo, se la strada passa sulla scritta; negli altri tratti solo se ci finisce
+    // sopra per sbaglio, così girandoci intorno resta alla sua quota)
+    let want = 0
+    if (r) {
+      const nx = Math.min(Math.max(f.x, r.x0), r.x1)
+      const ny = Math.min(Math.max(f.y, r.y0), r.y1)
+      const from = f.over || f.exiting ? CLIMB_FROM : 0.5
+      const near = Math.max(0, 1 - Math.hypot(f.x - nx, f.y - ny) / (cell * from))
+      want = near * near * (3 - 2 * near)
+    }
+    const k = 7
+    f.altV += (k * (want - f.alt) - 2 * Math.sqrt(k) * 0.9 * f.altV) * dt
+    f.alt += f.altV * dt
   }
 
   function draw(ctx, view) {
@@ -228,11 +278,20 @@ export function createFlyer() {
       return
     }
     const sp = SPEED * view.cell
-    // spinta: un po' per restare in aria, di più quando accelera
-    const thrust = Math.min(1, 0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp))
+    const alt = Math.max(0, f.alt)
+    // velocità di salita sullo schermo (negativa salendo): la posa la sente come un movimento
+    // verso l'alto, quindi spinge con i palmi verso il basso
+    f.lv = -f.altV * CLIMB * view.cell
+    // spinta: un po' per restare in aria, di più quando accelera e quando prende quota
+    const thrust = Math.min(
+      1,
+      0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp) + 0.5 * Math.max(0, f.altV) + 0.1 * alt
+    )
     const bob = (Math.sin(clock * 2.1 + f.seed) + 0.4 * Math.sin(clock * 3.7)) * view.cell * 0.02
-    const points = body.draw(f, f.x, f.y + bob, view.cell, clock, thrust, view.light, lastDt, true)
-    drawFlames(ctx, f, view.cell, clock, thrust, view.light, points)
+    const lift = alt * CLIMB * view.cell
+    const points = body.draw(f, f.x, f.y + bob - lift, view.cell, clock, thrust, view.light, lastDt, true, 1 + CLIMB_ZOOM * alt)
+    // l'ombra resta a terra sotto il percorso: più in alto vola, più è larga e tenue
+    drawFlames(ctx, f, view.cell, clock, thrust, view.light, points, { shadow: 1 - 0.6 * alt, spread: 1 + 0.5 * alt })
   }
 
   function reset() {
@@ -271,9 +330,9 @@ function flame(ctx, x, y, dx, dy, len, w, flicker) {
 
 // Ombra sul pavimento e fiammelle da piedi e mani. Le fiammelle partono dai punti del
 // modello 3D proiettati sullo schermo; senza modello 3D (immagine di riserva) solo l'ombra.
-// Usata anche dai robottini di "Schiocca le dita" (size: altezza in celle, shadow: intensità
-// dell'ombra da 0 a 1).
-export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 1.5, shadow = 1 } = {}) {
+// size: altezza in celle, shadow: intensità dell'ombra da 0 a 1, spread: allargamento
+// dell'ombra (più il robottino è alto, più è larga).
+export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 1.5, shadow = 1, spread = 1 } = {}) {
   const u = cell * (size / 3) * f.scale
   if (u <= 0) return
   // ombra staccata: sta volando
@@ -282,7 +341,7 @@ export function drawFlames(ctx, f, cell, clock, thrust, light, points, { size = 
     ctx.globalAlpha = shadow
     ctx.fillStyle = light ? 'rgba(60, 30, 30, 0.13)' : 'rgba(0, 0, 0, 0.35)'
     ctx.beginPath()
-    ctx.ellipse(f.x, f.y + cell * size * 0.77, u * 0.7, u * 0.14, 0, 0, Math.PI * 2)
+    ctx.ellipse(f.x, f.y + cell * size * 0.77, u * 0.7 * spread, u * 0.14 * spread, 0, 0, Math.PI * 2)
     ctx.fill()
     ctx.restore()
   }
