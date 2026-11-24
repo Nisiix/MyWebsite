@@ -1,4 +1,4 @@
-// Personaggino a sfera che gira nella griglia dello sfondo della home, come in un labirinto.
+// Orsacchiotto che gira nella griglia dello sfondo della home, come in un labirinto.
 // Entra da un bordo laterale, si muove da una cella all'altra evitando le celle occupate
 // (scritta, blocchi alzati), ogni tanto cambia strada, poi esce dal bordo più vicino.
 
@@ -127,130 +127,103 @@ export function createCritters() {
   return { update, draw, reset }
 }
 
-// Mascotte originale in 2D: un fagiolino giallo con orecchie tonde, un'antenna con un
-// cubetto dorato in cima (come i blocchi del sito), occhi neri, braccine e piedini.
-// Guarda dove cammina; ogni tanto apre la bocca come se masticasse.
+// Orsacchiotto giallo in 2D, originale: testa tonda con orecchie tonde, muso chiaro con
+// nasino nero, pancia chiara, braccine e piedini con i cuscinetti. Guarda dove cammina
+// e ogni tanto apre la bocca come se masticasse.
 function drawCritter(ctx, x, y, cell, c, clock, light) {
-  const u = cell * 0.36 * c.scale // unità di misura: circa il raggio del corpo
+  const u = cell * 0.36 * c.scale // unità di misura: circa il raggio della testa
   if (u <= 0) return
   const [dx, dy] = c.dir
   const face = dx < 0 ? -1 : 1 // girato verso sinistra o destra
   const look = dy !== 0 ? 0 : 1 // di fronte quando va su o giù
   const walk = Math.sin(clock * 14 + c.life)
-  const hop = Math.abs(walk) * u * 0.12
+  const hop = Math.abs(walk) * u * 0.1
   const outline = light ? '#6b5200' : '#3a2c00'
+  const cream = '#fff3c4'
+  const ink = '#1a1408'
+  const ellipse = (ex, ey, rx, ry, fill, stroke = true) => {
+    ctx.fillStyle = fill
+    ctx.beginPath()
+    ctx.ellipse(ex, ey, rx, ry, 0, 0, Math.PI * 2)
+    ctx.fill()
+    if (stroke) ctx.stroke()
+  }
   ctx.save()
-  ctx.translate(x, y + u * 0.15)
+  ctx.translate(x, y + u * 0.1)
   ctx.lineWidth = Math.max(1, u * 0.07)
-  ctx.lineJoin = 'round'
   ctx.strokeStyle = outline
 
   // ombra
   ctx.fillStyle = light ? 'rgba(60, 50, 20, 0.16)' : 'rgba(0, 0, 0, 0.4)'
   ctx.beginPath()
-  ctx.ellipse(0, u * 0.98, u * 0.7, u * 0.16, 0, 0, Math.PI * 2)
+  ctx.ellipse(0, u * 1.02, u * 0.75, u * 0.16, 0, 0, Math.PI * 2)
   ctx.fill()
 
   ctx.translate(0, -hop)
   ctx.scale(face, 1)
 
-  // piedini che si alternano
-  ctx.fillStyle = c.color.dark
+  // piedini con il cuscinetto chiaro
   for (const side of [-1, 1]) {
-    ctx.beginPath()
-    ctx.ellipse(side * u * 0.32 + walk * side * u * 0.08, u * 0.88, u * 0.2, u * 0.11, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.stroke()
+    const fx = side * u * 0.36 + walk * side * u * 0.07
+    ellipse(fx, u * 0.9, u * 0.24, u * 0.15, c.color.dark)
+    ellipse(fx + u * 0.04, u * 0.9, u * 0.11, u * 0.07, cream, false)
   }
-
-  // antenna con il cubetto dorato
-  ctx.beginPath()
-  ctx.moveTo(u * 0.05, -u * 0.95)
-  ctx.quadraticCurveTo(u * 0.25, -u * 1.25, u * 0.15, -u * 1.45)
-  ctx.stroke()
-  ctx.save()
-  ctx.translate(u * 0.15, -u * 1.5)
-  ctx.rotate(Math.sin(clock * 3) * 0.3)
-  ctx.fillStyle = light ? '#b08a1e' : '#d4af37'
-  ctx.fillRect(-u * 0.13, -u * 0.13, u * 0.26, u * 0.26)
-  ctx.strokeRect(-u * 0.13, -u * 0.13, u * 0.26, u * 0.26)
-  ctx.restore()
-
-  // orecchie tonde e corte
-  for (const side of [-1, 1]) {
-    ctx.save()
-    ctx.translate(side * u * 0.5, -u * 0.78)
-    ctx.rotate(side * 0.35)
-    ctx.fillStyle = c.color.body
-    ctx.beginPath()
-    ctx.ellipse(0, 0, u * 0.22, u * 0.26, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.stroke()
-    ctx.fillStyle = c.color.dark
-    ctx.beginPath()
-    ctx.ellipse(0, u * 0.03, u * 0.11, u * 0.14, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.restore()
-  }
-
-  // braccine che dondolano
-  ctx.fillStyle = c.color.body
-  for (const side of [-1, 1]) {
-    ctx.save()
-    ctx.translate(side * u * 0.78, u * 0.2)
-    ctx.rotate(side * (0.5 + walk * 0.35))
-    ctx.beginPath()
-    ctx.ellipse(0, u * 0.12, u * 0.12, u * 0.24, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.stroke()
-    ctx.restore()
-  }
-
-  // corpo a fagiolino, piatto con una sfumatura leggera
-  const grad = ctx.createLinearGradient(0, -u, 0, u)
+  // corpo
+  const grad = ctx.createLinearGradient(0, 0, 0, u)
   grad.addColorStop(0, c.color.body)
   grad.addColorStop(1, c.color.dark)
-  ctx.fillStyle = grad
-  ctx.beginPath()
-  ctx.ellipse(0, 0, u * 0.82, u * 0.95, 0, 0, Math.PI * 2)
-  ctx.fill()
-  ctx.stroke()
-  // pancia più chiara
-  ctx.fillStyle = 'rgba(255, 248, 214, 0.75)'
-  ctx.beginPath()
-  ctx.ellipse(u * 0.05 * look, u * 0.42, u * 0.42, u * 0.36, 0, 0, Math.PI * 2)
-  ctx.fill()
+  ellipse(0, u * 0.5, u * 0.68, u * 0.5, grad)
+  ellipse(u * 0.05 * look, u * 0.56, u * 0.36, u * 0.3, cream, false)
+  // braccine che dondolano
+  for (const side of [-1, 1]) {
+    ctx.save()
+    ctx.translate(side * u * 0.6, u * 0.38)
+    ctx.rotate(side * (0.45 + walk * 0.35))
+    ellipse(0, u * 0.14, u * 0.14, u * 0.26, c.color.body)
+    ctx.restore()
+  }
+  // orecchie tonde con l'interno chiaro
+  for (const side of [-1, 1]) {
+    ellipse(side * u * 0.58, -u * 0.62, u * 0.26, u * 0.26, c.color.body)
+    ellipse(side * u * 0.58, -u * 0.6, u * 0.13, u * 0.13, cream, false)
+  }
+  // testa
+  const headGrad = ctx.createLinearGradient(0, -u, 0, u * 0.3)
+  headGrad.addColorStop(0, '#ffe066')
+  headGrad.addColorStop(1, c.color.body)
+  ellipse(0, -u * 0.12, u * 0.78, u * 0.66, headGrad)
 
   // viso spostato verso la direzione di marcia
-  const fx = u * 0.18 * look
-  const fy = dy * u * 0.08
+  const fx = u * 0.16 * look
+  const fy = dy * u * 0.06
+  // occhi
   for (const side of [-1, 1]) {
-    const ex = side * u * 0.28 + fx
-    const ey = -u * 0.25 + fy
-    ctx.fillStyle = '#121110'
-    ctx.beginPath()
-    ctx.ellipse(ex, ey, u * 0.11, u * 0.15, 0, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.fillStyle = '#ffffff'
-    ctx.beginPath()
-    ctx.arc(ex + u * 0.03, ey - u * 0.06, u * 0.045, 0, Math.PI * 2)
-    ctx.fill()
+    const ex = side * u * 0.3 + fx
+    const ey = -u * 0.24 + fy
+    ellipse(ex, ey, u * 0.09, u * 0.11, ink, false)
+    ellipse(ex + u * 0.025, ey - u * 0.04, u * 0.03, u * 0.03, '#ffffff', false)
   }
+  // muso chiaro con nasino
+  const mx = fx * 1.3
+  const my = u * 0.08 + fy
+  ctx.lineWidth = Math.max(1, u * 0.05)
+  ellipse(mx, my, u * 0.3, u * 0.22, cream)
+  ellipse(mx, my - u * 0.07, u * 0.09, u * 0.065, ink, false)
   // bocca: sorriso, che ogni tanto si apre per masticare
   const phase = (clock + c.life * 0.37) % CHEW_EVERY
   const chew = phase < CHEW_FOR ? (1 - Math.cos((phase / CHEW_FOR) * Math.PI * 2 * CHEW_BITES)) / 2 : 0
-  const mx = fx
-  const my = u * 0.02 + fy
-  ctx.lineWidth = Math.max(1, u * 0.06)
-  ctx.strokeStyle = '#121110'
+  ctx.strokeStyle = ink
+  ctx.lineWidth = Math.max(1, u * 0.045)
+  ctx.beginPath()
+  ctx.moveTo(mx, my - u * 0.01)
+  ctx.lineTo(mx, my + u * 0.05)
+  ctx.stroke()
   if (chew > 0.08) {
-    ctx.fillStyle = '#4a1414'
-    ctx.beginPath()
-    ctx.ellipse(mx, my + u * 0.04, u * 0.15, u * 0.04 + u * 0.14 * chew, 0, 0, Math.PI * 2)
-    ctx.fill()
+    ellipse(mx, my + u * 0.1, u * 0.09, u * 0.02 + u * 0.07 * chew, '#7a2a1e', false)
   } else {
     ctx.beginPath()
-    ctx.arc(mx, my - u * 0.04, u * 0.13, 0.2 * Math.PI, 0.8 * Math.PI)
+    ctx.arc(mx - u * 0.06, my + u * 0.05, u * 0.06, 0, Math.PI * 0.9)
+    ctx.arc(mx + u * 0.06, my + u * 0.05, u * 0.06, Math.PI * 0.1, Math.PI)
     ctx.stroke()
   }
   ctx.restore()
