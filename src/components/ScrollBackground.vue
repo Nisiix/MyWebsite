@@ -3,7 +3,7 @@
     Sfondo animato dallo scroll:
     - griglia disegnata su canvas, con parallasse
     - blocchi della griglia che si alzano in 3D, ognuno in un momento diverso dello scroll
-    - in cima alla home i blocchi compongono la scritta NISIIX
+    - in cima alla home i blocchi scrivono NISIIX, lettera per lettera, all'arrivo sulla pagina
     - bagliori dorati che attraversano lo schermo
   -->
   <div class="scroll-bg" aria-hidden="true">
@@ -34,22 +34,38 @@ const SCROLL_START = 20 // px: i blocchi casuali iniziano ad alzarsi solo dopo q
 const WORD_LIFT = 0.07 // altezza dei blocchi della scritta: bassa, così le lettere restano leggibili
 const WORD_FADE = 380 // px di scroll in cui la scritta NISIIX si abbassa fino a sparire
 
-// Scritta NISIIX a blocchi (5 righe), mostrata in cima alla home
+// Scritta NISIIX a blocchi (5 righe), mostrata in cima alla home.
+// Ogni lettera elenca i suoi blocchi [col, riga] nell'ordine in cui si scrive a mano:
+// all'arrivo sulla home si alzano uno alla volta, lettera dopo lettera.
 const GLYPHS = {
-  N: ['X..X', 'XX.X', 'X.XX', 'X..X', 'X..X'],
-  I: ['X', 'X', 'X', 'X', 'X'],
-  S: ['XXX', 'X..', 'XXX', '..X', 'XXX'],
-  X: ['X.X', 'X.X', '.X.', 'X.X', 'X.X']
+  // sale a sinistra, scende in diagonale, risale a destra fino in alto
+  N: { w: 4, path: [[0, 4], [0, 3], [0, 2], [0, 1], [0, 0], [1, 1], [2, 2], [3, 4], [3, 3], [3, 2], [3, 1], [3, 0]] },
+  // dall'alto in basso
+  I: { w: 1, path: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4]] },
+  // dall'angolo in alto a destra, a serpentina fino in basso a sinistra
+  S: { w: 3, path: [[2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [1, 2], [2, 2], [2, 3], [2, 4], [1, 4], [0, 4]] },
+  // prima la diagonale da in alto a sinistra, poi quella da in alto a destra
+  X: { w: 3, path: [[0, 0], [0, 1], [1, 2], [2, 3], [2, 4], [2, 0], [2, 1], [0, 3], [0, 4]] }
 }
 const WORD = 'NISIIX'
-const WORD_CELLS = [] // [col, row] relativi all'angolo in alto a sinistra della scritta
+const BLOCK_STEP = 55 // ms tra un blocco e il successivo
+const LETTER_PAUSE = 160 // ms di pausa in più tra una lettera e l'altra
+const WORD_DELAY = 250 // ms prima del primo blocco
+const WORD_CELLS = [] // [col, row, ritardo in ms] relativi all'angolo in alto a sinistra della scritta
 let WORD_W = 0
+let wordClock = WORD_DELAY
 for (const ch of WORD) {
   const g = GLYPHS[ch]
-  g.forEach((line, r) => [...line].forEach((v, c) => v === 'X' && WORD_CELLS.push([WORD_W + c, r])))
-  WORD_W += g[0].length + 1
+  for (const [c, r] of g.path) {
+    WORD_CELLS.push([WORD_W + c, r, wordClock])
+    wordClock += BLOCK_STEP
+  }
+  wordClock += LETTER_PAUSE
+  WORD_W += g.w + 1
 }
 WORD_W -= 1
+const WORD_DURATION = wordClock + 1200 // fine della scrittura, con il tempo per l'ultimo blocco di salire
+const WORD_EASE = 0.13 // i blocchi della scritta salgono un po' più rapidi
 const WORD_H = 5
 const WORD_RAISE = 1 // righe di cui la scritta sta più in alto rispetto al centro dello spazio vuoto
 
@@ -57,7 +73,9 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 let ctx = null
 let CELL = 60
-let wordSet = null // celle ("col:row") della scritta, null se non siamo sulla home
+let wordCells = null // celle ("col:row") della scritta -> ritardo in ms, null se non siamo sulla home
+let wordStart = 0 // istante in cui è iniziata la scrittura
+let wordElapsed = 0 // ms trascorsi dall'inizio della scrittura, aggiornato a ogni fotogramma
 let width = 0
 let height = 0
 let dpr = 1
@@ -75,7 +93,8 @@ function hash(col, row, seed) {
 // Altezza che il blocco dovrebbe avere a questa posizione di scroll
 function targetLift(col, row, scrollY) {
   let word = 0
-  if (wordSet && wordSet.has(`${col}:${row}`)) {
+  const delay = wordCells?.get(`${col}:${row}`)
+  if (delay !== undefined && (reducedMotion || wordElapsed >= delay)) {
     const w = Math.max(0, 1 - scrollY / WORD_FADE)
     word = WORD_LIFT * w * w
   }
@@ -112,15 +131,17 @@ function resize() {
 function measureWord() {
   const anchor = route.name === 'home' ? document.querySelector('[data-bg-word]') : null
   if (!anchor) {
-    wordSet = null
+    wordCells = null
     return
   }
+  // appena si arriva sulla home la scritta riparte da capo
+  if (!wordCells) wordStart = performance.now()
   const rect = anchor.getBoundingClientRect()
   // posizione nella pagina; a scroll 0 la riga r della griglia sta a y = r * CELL
   const centerY = rect.top + window.scrollY + rect.height / 2
   const top = Math.round(centerY / CELL - WORD_H / 2) - WORD_RAISE
   const left = Math.round((width / CELL - WORD_W) / 2)
-  wordSet = new Set(WORD_CELLS.map(([c, r]) => `${left + c}:${top + r}`))
+  wordCells = new Map(WORD_CELLS.map(([c, r, d]) => [`${left + c}:${top + r}`, d]))
 }
 
 // Prospettiva vista dall'alto: il tetto di un blocco alzato si allarga dal centro dello schermo
@@ -133,6 +154,7 @@ function draw() {
   const scrollY = window.scrollY
   const offsetY = -((scrollY * PARALLAX) % CELL)
   const firstRow = Math.floor((scrollY * PARALLAX) / CELL)
+  wordElapsed = performance.now() - wordStart
   const cols = Math.ceil(width / CELL) + 1
   const rows = Math.ceil(height / CELL) + 2
   const cx = width / 2
@@ -157,7 +179,8 @@ function draw() {
   ctx.stroke()
 
   // Blocchi: calcola altezze, poi disegna dal più lontano dal centro al più vicino
-  let animating = false
+  // finché la scritta non è completa bisogna continuare a disegnare
+  let animating = !!wordCells && !reducedMotion && wordElapsed < WORD_DURATION
   const blocks = []
   const seen = new Set()
   for (let r = -1; r < rows; r++) {
@@ -167,7 +190,8 @@ function draw() {
       seen.add(key)
       const target = targetLift(col, row, scrollY)
       const prev = lifts.get(key) ?? 0
-      const next = reducedMotion ? target : prev + (target - prev) * EASE
+      const ease = wordCells?.has(key) ? WORD_EASE : EASE
+      const next = reducedMotion ? target : prev + (target - prev) * ease
       if (Math.abs(target - next) > 0.0005) animating = true
       if (next < 0.002 && target === 0) {
         lifts.delete(key)
