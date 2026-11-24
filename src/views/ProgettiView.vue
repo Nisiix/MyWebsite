@@ -34,8 +34,18 @@
           >
             <!-- Preview Image Area -->
             <div class="project-preview" :style="{ '--accent': project.color }">
-              <div class="preview-pattern"></div>
-              <div class="preview-icon">
+              <img
+                v-if="project.image"
+                class="preview-image"
+                :src="project.image"
+                :alt="`Anteprima della landing page di ${project.name}`"
+                loading="lazy"
+                decoding="async"
+                width="1280"
+                height="720"
+              />
+              <div v-else class="preview-pattern"></div>
+              <div class="preview-icon" :class="{ 'is-badge': project.image }">
                 <i :class="project.icon || 'pi pi-desktop'"></i>
               </div>
 
@@ -154,6 +164,47 @@ const store = useProgettiStore()
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.project-preview:has(.preview-image) {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.preview-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.6s var(--ease-smooth), filter 0.4s;
+  filter: saturate(0.9) brightness(0.92);
+}
+
+.project-preview:has(.preview-image)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 45%);
+  pointer-events: none;
+}
+
+.project-card:hover .preview-image {
+  transform: scale(1.04);
+  filter: saturate(1) brightness(1);
+}
+
+.preview-icon.is-badge {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  font-size: 1.35rem;
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .preview-pattern {
