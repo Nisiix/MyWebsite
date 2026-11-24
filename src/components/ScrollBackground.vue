@@ -51,6 +51,7 @@ for (const ch of WORD) {
 }
 WORD_W -= 1
 const WORD_H = 5
+const WORD_RAISE = 1 // righe di cui la scritta sta più in alto rispetto al centro dello spazio vuoto
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -117,7 +118,7 @@ function measureWord() {
   const rect = anchor.getBoundingClientRect()
   // posizione nella pagina; a scroll 0 la riga r della griglia sta a y = r * CELL
   const centerY = rect.top + window.scrollY + rect.height / 2
-  const top = Math.round(centerY / CELL - WORD_H / 2)
+  const top = Math.round(centerY / CELL - WORD_H / 2) - WORD_RAISE
   const left = Math.round((width / CELL - WORD_W) / 2)
   wordSet = new Set(WORD_CELLS.map(([c, r]) => `${left + c}:${top + r}`))
 }
