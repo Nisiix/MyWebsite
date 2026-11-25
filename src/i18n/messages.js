@@ -138,7 +138,7 @@ export const messages = {
       language: 'Language',
       main: 'Main navigation',
       menu: 'Menu',
-      contact: 'Contact me',
+      contact: 'Get in touch',
       themeToLight: 'Switch to light theme',
       themeToDark: 'Switch to dark theme'
     },
