@@ -1,5 +1,5 @@
 <template>
-  <div class="lang-switcher" ref="root" @keydown.esc="close(true)">
+  <div class="lang-switcher" ref="root" @keydown.esc="onEsc">
     <button
       type="button"
       class="lang-toggle"
@@ -11,7 +11,6 @@
     >
       <i class="pi pi-globe"></i>
       <span>{{ current.short }}</span>
-      <i class="pi pi-chevron-down lang-chevron" :class="{ open }"></i>
     </button>
 
     <transition name="lang-pop">
@@ -65,6 +64,13 @@ function close(focusToggle = false) {
   if (focusToggle) toggle.value?.focus()
 }
 
+// Esc chiude solo la tendina, non anche il menu mobile che la contiene
+function onEsc(e) {
+  if (!open.value) return
+  e.stopPropagation()
+  close(true)
+}
+
 function onDocClick(e) {
   if (root.value && !root.value.contains(e.target)) close()
 }
@@ -81,14 +87,14 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .lang-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
   color: var(--text-secondary);
   font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: 0.5px;
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   transition: 0.3s var(--ease-smooth);
   transition-property: var(--transition-props);
 }
@@ -96,7 +102,6 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 .lang-toggle:hover,
 .lang-toggle[aria-expanded='true'] {
   color: var(--gold);
-  border-color: var(--border-gold);
   background: var(--gold-subtle);
 }
 
@@ -104,18 +109,9 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
   font-size: 0.9rem;
 }
 
-.lang-chevron {
-  font-size: 0.65rem;
-  transition: transform 0.3s var(--ease-smooth);
-}
-
-.lang-chevron.open {
-  transform: rotate(180deg);
-}
-
 .lang-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 12px);
   right: 0;
   min-width: 170px;
   padding: 6px;
@@ -174,7 +170,10 @@ onUnmounted(() => document.removeEventListener('click', onDocClick))
 }
 
 @media (pointer: coarse), (max-width: 768px) {
-  .lang-toggle,
+  .lang-toggle {
+    height: var(--tap);
+  }
+
   .lang-option {
     min-height: var(--tap);
   }

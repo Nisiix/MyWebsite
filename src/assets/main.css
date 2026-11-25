@@ -607,8 +607,9 @@ a.glass-card:hover {
   display: none;
 }
 
-/* la barra ha un suo gruppo, disegnato sopra il contenuto che cambia */
-.navbar {
+/* la barra ha un suo gruppo, disegnato sopra il contenuto che cambia (sull'elemento interno:
+   sul <header> renderebbe inefficace la sfocatura del vetro) */
+.navbar-inner {
   view-transition-name: navbar;
 }
 

@@ -15,24 +15,22 @@ import { theme, toggleTheme } from '@/theme'
 </script>
 
 <style scoped>
-/* Stessa forma del selettore lingua, accanto al quale si trova */
+/* Pulsante tondo senza bordo: sta nel gruppo con il selettore della lingua */
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   color: var(--text-secondary);
   font-size: var(--text-md);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   transition: 0.3s var(--ease-smooth);
   transition-property: var(--transition-props);
 }
 
 .theme-toggle:hover {
   color: var(--gold);
-  border-color: var(--border-gold);
   background: var(--gold-subtle);
 }
 

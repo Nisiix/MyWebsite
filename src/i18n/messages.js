@@ -10,6 +10,7 @@ export const messages = {
       language: 'Lingua',
       main: 'Navigazione principale',
       menu: 'Menu',
+      contact: 'Contattami',
       themeToLight: 'Passa al tema chiaro',
       themeToDark: 'Passa al tema scuro'
     },
@@ -137,6 +138,7 @@ export const messages = {
       language: 'Language',
       main: 'Main navigation',
       menu: 'Menu',
+      contact: 'Contact me',
       themeToLight: 'Switch to light theme',
       themeToDark: 'Switch to dark theme'
     },
