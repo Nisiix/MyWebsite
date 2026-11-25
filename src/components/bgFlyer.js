@@ -21,6 +21,15 @@ const PAUSE = [6, 14] // secondi tra un'uscita e il rientro successivo
 const HOVER = [0.6, 2.2] // secondi fermo a mezz'aria a ogni tappa
 const EXIT_TIMEOUT = 15 // secondi massimi per uscire, poi sparisce sul posto
 const NAV = 80 // px della barra di navigazione in alto
+// Zona di volo: entra e fa i primi tratti nella metà superiore dello schermo visibile, poi vola
+// libero ma senza mai scendere nel 40% inferiore (tranne quando cade dopo lo schiocco).
+const INTRO_TOP = 0.5 // limite in basso dei primi tratti, in frazione dell'altezza visibile
+const FLOOR = 0.6 // limite in basso del volo libero
+const INTRO_LEGS = 2 // tratti iniziali nella metà superiore
+// in alto resta sotto la barra di navigazione con tutta la testa
+const topY = (view) => NAV + view.cell * 0.85
+const floorY = (view) => Math.max(topY(view) + view.cell * 0.5, view.height * FLOOR - view.cell * 0.8)
+const introY = (view) => Math.max(topY(view) + view.cell * 0.5, view.height * INTRO_TOP - view.cell * 0.8)
 const OVER_CHANCE = 0.4 // probabilità che un tratto sorvoli la scritta invece di girarci intorno
 const CLIMB = 0.85 // quota sopra la scritta, in celle (spostamento verso l'alto sullo schermo)
 const CLIMB_FROM = 2.4 // celle dalla scritta a cui inizia a salire
@@ -60,7 +69,7 @@ export function createFlyer() {
   function spawn(view) {
     const fromLeft = Math.random() < 0.5
     const m = view.cell
-    const y = rand(NAV + m, view.height - m)
+    const y = rand(topY(view), introY(view))
     const x = fromLeft ? -m : view.width + m
     f = {
       x,
@@ -89,21 +98,28 @@ export function createFlyer() {
       downAt: 0,
       relightAt: 0, // istante in cui si sono riaccesi, per la ripresa
       tumble: 0, // rotazione mentre cade, con la sua velocità
-      tumbleV: 0
+      tumbleV: 0,
+      intro: INTRO_LEGS // tratti ancora da fare nella metà superiore
     }
     pickTarget(view)
   }
 
   // prossima tappa: un punto libero dello schermo raggiungibile senza passare sulla scritta
   // (o, ogni tanto, passandoci sopra)
+  // limite in basso della zona di volo: metà schermo nei primi tratti, poi il 60%
+  const zoneFloor = (view) => (f.inIntro ? introY(view) : floorY(view))
+
   function pickTarget(view) {
     f.over = false
-    if (view.avoid && Math.random() < OVER_CHANCE && pickOver(view)) return
+    f.inIntro = f.intro > 0
+    if (f.intro > 0) f.intro--
+    const low = zoneFloor(view) - view.cell * 0.4
+    if (view.avoid && Math.random() < OVER_CHANCE && pickOver(view, low)) return
     const m = view.cell * 0.8
     let best = null
     for (let i = 0; i < 40; i++) {
       const tx = rand(m, view.width - m)
-      const ty = rand(NAV + m, view.height - m)
+      const ty = rand(topY(view), Math.max(topY(view), low))
       const r = view.avoid
       if (r && tx > r.x0 - m && tx < r.x1 + m && ty > r.y0 - m && ty < r.y1 + m) continue
       best = [tx, ty]
@@ -115,14 +131,14 @@ export function createFlyer() {
     f.curve = rand(0.25, 0.7) * (Math.random() < 0.5 ? -1 : 1)
   }
 
-  // tappa dall'altra parte della scritta: il tratto la sorvola. La tappa resta ben lontana dai
+  // tappa dall'altra parte della scritta: il tratto la sorvola. La tappa resta fuori dai
   // blocchi, così dopo averli passati riscende.
-  function pickOver(view) {
+  function pickOver(view, low) {
     const r = view.avoid
-    const m = view.cell * 1.6
+    const m = view.cell
     for (let i = 0; i < 40; i++) {
       const tx = rand(view.cell * 0.8, view.width - view.cell * 0.8)
-      const ty = rand(NAV + view.cell * 0.8, view.height - view.cell * 0.8)
+      const ty = rand(topY(view), Math.max(topY(view), low))
       if (tx > r.x0 - m && tx < r.x1 + m && ty > r.y0 - m && ty < r.y1 + m) continue
       if (Math.hypot(tx - f.x, ty - f.y) < view.width * 0.3) continue
       if (!crosses(f.x, f.y, tx, ty, r, -view.cell * 0.5)) continue
@@ -136,15 +152,19 @@ export function createFlyer() {
     return false
   }
 
-  // uscita: verso il bordo laterale più vicino, sopra o sotto la scritta se è in mezzo
+  // uscita: verso il bordo laterale più vicino, sopra o sotto la scritta se è in mezzo (sotto
+  // solo se resta nella zona di volo); se non c'è spazio ci passa sopra prendendo quota
   function pickExit(view) {
     const m = view.cell
     const tx = f.x < view.width / 2 ? -m * 1.5 : view.width + m * 1.5
-    let ty = f.y
+    const low = floorY(view)
+    let ty = Math.min(f.y, low)
     const r = view.avoid
     if (crosses(f.x, f.y, tx, ty, r, m * 0.4)) {
-      ty = f.y < (r.y0 + r.y1) / 2 ? Math.max(NAV + m, r.y0 - m) : Math.min(view.height - m, r.y1 + m)
-      if (crosses(f.x, f.y, f.x, ty, r, 0)) ty = r.y1 + m
+      const above = r.y0 - m
+      const below = r.y1 + m
+      if (above >= topY(view) && (f.y < (r.y0 + r.y1) / 2 || below > low)) ty = above
+      else if (below <= low) ty = below
     }
     f.tx = tx
     f.ty = ty
@@ -168,7 +188,7 @@ export function createFlyer() {
       f.shutAt = 0
       if (f.down) {
         // si riprende solo se è ancora abbastanza in alto da farcela
-        if (view && f.y < view.height * 0.6) {
+        if (view && f.y < view.height * FLOOR) {
           f.down = false
           f.recovering = true
           f.relightAt = clock
@@ -229,12 +249,15 @@ export function createFlyer() {
       left -= h
       step(h, view)
     }
-    // resta nello schermo visibile (tranne quando entra o esce dai lati); appena riacceso
-    // dopo una caduta può finire sotto il bordo e risale da solo
-    const bottom = view.height - view.cell * 0.5
-    f.y = Math.max(f.y, NAV + view.cell * 0.5)
+    // resta nella zona di volo (tranne quando entra o esce dai lati); appena riacceso dopo una
+    // caduta può trovarsi più in basso e risale da solo
+    const bottom = zoneFloor(view)
+    f.y = Math.max(f.y, topY(view))
     if (f.recovering && f.y <= bottom && f.vy <= 0) f.recovering = false
-    if (!f.recovering) f.y = Math.min(f.y, bottom)
+    if (!f.recovering && f.y > bottom) {
+      f.y = bottom
+      f.vy = Math.min(f.vy, 0)
+    }
     if (Math.abs(f.vx) > SPEED * view.cell * 0.15) f.face = f.vx > 0 ? 1 : -1
     if (f.gone || f.scale <= 0) f = null
     return true
@@ -323,6 +346,9 @@ export function createFlyer() {
       wx = (ux * c - uy * s) * speed * k
       wy = (ux * s + uy * c) * speed * k
     }
+    // non scende sotto la zona di volo: vicino al limite viene spinto dolcemente in su
+    const below = f.y - (zoneFloor(view) - cell * 0.4)
+    if (below > 0 && !f.recovering) wy -= Math.min(1.5, below / (cell * 0.4)) * speed * 1.2
     // tiene le distanze dalla scritta (tranne quando la sorvola)
     const r = view.avoid
     if (r && !f.exiting && !f.over) {
@@ -392,7 +418,8 @@ export function createFlyer() {
           0.25 * Math.hypot(f.vx, f.vy) / sp + 0.75 * Math.hypot(f.ax, f.ay) / (ACCEL * sp) + 0.5 * Math.max(0, f.altV) + 0.1 * alt
         )
     const bob = (Math.sin(clock * 2.1 + f.seed) + 0.4 * Math.sin(clock * 3.7)) * view.cell * 0.02
-    const lift = alt * CLIMB * view.cell
+    // in quota si alza sullo schermo, ma senza finire sotto la barra di navigazione
+    const lift = Math.min(alt * CLIMB * view.cell, Math.max(0, f.y - topY(view)))
     const points = body.draw(f, f.x, f.y + bob - lift, view.cell, clock, thrust, view.light, lastDt, true, 1 + CLIMB_ZOOM * alt)
     // l'ombra resta a terra sotto il percorso: più in alto vola, più è larga e tenue
     const fading = f.down ? Math.max(0, 1 - (clock - f.downAt - SPUTTER) * 2.5) : 1
