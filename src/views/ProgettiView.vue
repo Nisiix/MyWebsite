@@ -42,9 +42,6 @@
                 height="720"
               />
               <div v-else class="preview-pattern"></div>
-              <div class="preview-icon" :class="{ 'is-badge': project.image }">
-                <i :class="project.icon || 'pi pi-desktop'"></i>
-              </div>
 
             </div>
 
@@ -153,17 +150,6 @@ useLetterFall(pageRoot)
   filter: saturate(1) brightness(1);
 }
 
-.preview-icon.is-badge {
-  position: absolute;
-  left: 20px;
-  bottom: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  font-size: 1.35rem;
-  background: rgba(0, 0, 0, 0.6);
-}
-
 .preview-pattern {
   position: absolute;
   inset: 0;
@@ -176,30 +162,6 @@ useLetterFall(pageRoot)
 
 .project-card:hover .preview-pattern {
   opacity: 0.3;
-}
-
-.preview-icon {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
-  color: var(--accent, var(--gold));
-  font-size: 2rem;
-  transition: 0.4s var(--ease-smooth);
-  transition-property: var(--transition-props);
-  z-index: 1;
-}
-
-.project-card:hover .preview-icon {
-  transform: scale(1.1) rotate(-3deg);
-  background: var(--accent, var(--gold));
-  color: var(--bg-primary);
-  border-color: transparent;
 }
 
 .preview-badge {

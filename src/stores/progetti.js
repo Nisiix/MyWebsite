@@ -14,7 +14,6 @@ export const useProgettiStore = defineStore('progetti', () => {
       },
       tags: ['Tauri 2', 'Vue 3', 'TypeScript', 'Rust'],
       color: '#9B7FE6',
-      icon: 'pi pi-check-square',
       url: 'https://nisiix.github.io/Todo-Doto/',
       // Screenshot della landing page del progetto
       image: todoDotoPreview
@@ -27,7 +26,6 @@ export const useProgettiStore = defineStore('progetti', () => {
       },
       tags: ['Phaser', 'TypeScript', 'Vite', 'Supabase'],
       color: '#F08A3C',
-      icon: 'pi pi-chart-line',
       url: 'https://nisiix.github.io/Tradermon/',
       // Screenshot della landing page del progetto
       image: tradermonPreview
