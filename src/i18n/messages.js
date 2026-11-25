@@ -19,7 +19,7 @@ export const messages = {
       newTab: '(si apre in una nuova scheda)'
     },
     meta: {
-      home: 'Nisiix Dev, sviluppatore software: gestionali su misura, tool e template per piattaforme gestionali, interfacce web moderne con Vue.js.',
+      home: 'Nisiix Dev, sviluppatore software: gestionali su misura, strumenti e template per piattaforme aziendali e interfacce web moderne con Vue.js.',
       curriculum: 'Curriculum di Nisiix Dev: competenze in Visual Basic 6, C#, JavaScript, Vue.js, Express.js e Java. Scaricabile in PDF.',
       projects: 'Progetti di Nisiix Dev: Todo Doto, app desktop per gestire roadmap di progetto, e Tradermon, gioco educativo sugli investimenti.',
       notFound: 'La pagina che cerchi non esiste.',
@@ -41,20 +41,20 @@ export const messages = {
       slideReady: 'premi Invio per confermare',
       slideCharge: 'carica al {n} percento',
       hello: 'Ciao, sono',
-      subtitle: 'Sviluppatore software specializzato in soluzioni gestionali, strumenti digitali e interfacce moderne che fanno la differenza.',
+      subtitle: 'Creo software gestionali, strumenti digitali e interfacce moderne, semplici da usare.',
       scroll: 'Scorri',
       scrollLabel: 'Scorri alla sezione successiva',
       aboutTitle: 'Chi sono',
       aboutSubtitle: 'Il mio percorso e il modo in cui affronto lo sviluppo software.',
       journeyTitle: 'Il mio percorso',
       stackLabel: 'Tecnologie principali',
-      journeyText1: "Sono uno sviluppatore software e uno sportivo con una passione per la tecnologia che nasce fin dall'adolescenza, quando mi interessavo soprattutto all'uso del PC, alla scoperta delle nuove tecnologie e ai videogiochi, per poi passare all'assemblaggio dei primi PC e, in seguito, alle mie prime righe di codice.",
-      journeyText2: "Nel corso della mia carriera, ormai decennale, ho utilizzato principalmente e in modo approfondito <strong>Visual Basic 6</strong> e <strong>Microsoft Visual C#</strong> per lo sviluppo di applicazioni gestionali desktop e soluzioni enterprise. Successivamente ho ampliato le mie competenze implementando parti di progetti già avviati in <strong>Vue.js</strong> utilizzando JavaScript e in <strong>Netbeans</strong> utilizzando Java, contribuendo allo sviluppo di moduli web e backend.",
+      journeyText1: "Sono uno sviluppatore software e uno sportivo. La mia passione per la tecnologia nasce nell'adolescenza: all'inizio usavo il PC soprattutto per scoprire nuove tecnologie e per i videogiochi, poi ho iniziato ad assemblare i primi computer e, infine, a scrivere le mie prime righe di codice.",
+      journeyText2: "In dieci anni di carriera ho lavorato soprattutto con <strong>Visual Basic 6</strong> e <strong>Microsoft Visual C#</strong>, sviluppando applicazioni gestionali desktop e soluzioni enterprise. In seguito ho ampliato le mie competenze lavorando su progetti già avviati in <strong>Vue.js</strong> (JavaScript) e in <strong>Java</strong> (con NetBeans), contribuendo a moduli web e backend.",
       philosophyTitle: 'La mia filosofia',
-      philosophyText1: 'Il mio approccio allo sviluppo è guidato dalla semplificazione del software, che deve risultare facile da capire, facile da modificare e facile da usare. Non amo le soluzioni software troppo complesse: preferisco una soluzione semplice, con poche funzionalità, ma che faccia esattamente ciò che deve fare.',
-      philosophyText2: "Credo che l'<strong>intelligenza artificiale</strong> sia uno strumento straordinariamente utile, capace di accelerare e potenziare il lavoro dello sviluppatore. L'IA aiuta a esplorare soluzioni, ad automatizzare i compiti ripetitivi e a velocizzare i primi passi nella creazione di un software. Tuttavia, è fondamentale avere una <strong>solida conoscenza pregressa</strong> dello sviluppo software: senza comprendere i principi architetturali, i pattern di design e la logica di business, l'IA resta uno strumento senza direzione che rischia di creare più danni che benefici.",
+      philosophyText1: 'Il mio approccio allo sviluppo è guidato dalla semplicità: il software deve essere facile da capire, da modificare e da usare. Non amo le soluzioni troppo complesse: preferisco una soluzione semplice, con poche funzionalità, che faccia esattamente ciò che serve.',
+      philosophyText2: "Credo che l'<strong>intelligenza artificiale</strong> sia uno strumento straordinario per accelerare il lavoro dello sviluppatore: aiuta a esplorare soluzioni, ad automatizzare i compiti ripetitivi e a partire più in fretta. Serve però una <strong>solida conoscenza</strong> dello sviluppo software: senza capire architettura, design pattern e logica di business, l'IA è uno strumento senza direzione, che rischia di creare più problemi di quanti ne risolva.",
       activitiesTitle: 'Di cosa mi occupo',
-      activitiesSubtitle: 'Le attività che occupano le mie giornate di lavoro.',
+      activitiesSubtitle: 'Le attività che riempiono le mie giornate di lavoro.',
       activities: [
         {
           title: 'Sviluppo di software gestionali',
@@ -62,11 +62,11 @@ export const messages = {
         },
         {
           title: 'Creazione di tool e template',
-          description: "Realizzo strumenti di utilità e template riutilizzabili per accelerare lo sviluppo su piattaforme gestionali. Dai generatori di codice ai sistemi di scaffolding, ogni tool nasce dall'esigenza concreta di ridurre i tempi di sviluppo e mantenere la coerenza tra progetti diversi."
+          description: "Realizzo strumenti di utilità e template riutilizzabili per accelerare lo sviluppo su piattaforme gestionali. Dai generatori di codice agli strumenti che preparano la struttura iniziale di un progetto, ogni tool nasce dall'esigenza concreta di ridurre i tempi di sviluppo e mantenere la coerenza tra progetti diversi."
         },
         {
           title: 'Migrazione e modernizzazione',
-          description: 'Supporto le aziende nella migrazione di applicazioni legacy, spesso scritte in VB6 o tecnologie datate, verso architetture moderne basate su .NET e Vue.js, preservando la logica di business consolidata e migliorando performance e manutenibilità.'
+          description: 'Aiuto le aziende a migrare le applicazioni legacy, spesso scritte in VB6 o tecnologie datate, verso architetture moderne basate su .NET e Vue.js, preservando la logica di business consolidata e migliorando performance e manutenibilità.'
         }
       ],
       hobbiesTitle: 'Passioni',
@@ -78,11 +78,11 @@ export const messages = {
         },
         {
           title: 'Musica',
-          description: "La musica è la colonna sonora della mia vita. Ascolto moltissimi generi musicali, dal rock all'elettronica, dall'hip-hop al jazz, passando per la house e la techno. Quando posso, mi svago utilizzando la console da DJ: mixare tracce e creare mi aiuta a staccare la spina."
+          description: "La musica è la colonna sonora della mia vita. Ascolto moltissimi generi, dal rock all'elettronica, dall'hip-hop al jazz, passando per la house e la techno. Quando posso mi svago con la console da DJ: mixare tracce e creare nuovi set mi aiuta a staccare la spina."
         },
         {
           title: 'Sport',
-          description: 'Lo sport è parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. In generale sono portato per tutti gli sport e mi piace praticare anche pallavolo, ping pong e sci.'
+          description: 'Lo sport è una parte fondamentale della mia vita. Gioco regolarmente a calcio e padel, due passioni che mi accompagnano da sempre. In generale sono portato per tutti gli sport e mi piace praticare anche pallavolo, ping pong e sci.'
         }
       ],
       contactsTitle: 'Contatti',
@@ -94,11 +94,11 @@ export const messages = {
       badge: 'Competenze tecniche',
       titleStart: 'Il mio',
       titleAccent: 'curriculum',
-      subtitle: 'Linguaggi, strumenti e piattaforme che ho padroneggiato nel corso della mia carriera. Principalmente sviluppo di software gestionali, tool e template per piattaforme gestionali, in secondo luogo sviluppo di siti web e web application a scopo ricreativo, personale e di apprendimento.',
+      subtitle: 'Linguaggi, strumenti e piattaforme che uso nel mio lavoro. Mi occupo soprattutto di software gestionali e di tool e template per queste piattaforme; nel tempo libero sviluppo anche siti e web app, per passione e per imparare.',
       specTitle: 'Area di specializzazione',
-      specText: "La mia principale area di competenza è lo <strong class=\"gold-text\">sviluppo di software gestionali</strong>, dalla progettazione architetturale all'implementazione completa. Creo <strong class=\"gold-text\">tool</strong> e <strong class=\"gold-text\">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di gestire progetti di migrazione e modernizzazione con una comprensione completa dello stack tecnologico.",
-      stackTitle: 'Stack tecnologico completo',
-      download: 'Scarica il CV in PDF'
+      specText: "La mia principale area di competenza è lo <strong class=\"gold-text\">sviluppo di software gestionali</strong>, dalla progettazione architetturale all'implementazione completa. Creo <strong class=\"gold-text\">tool</strong> e <strong class=\"gold-text\">template</strong> per piattaforme gestionali che accelerano i tempi di sviluppo e garantiscono coerenza e qualità in tutto l'ecosistema applicativo. L'esperienza maturata con tecnologie legacy (VB6) e moderne (Vue.js, C#) mi permette di seguire progetti di migrazione e modernizzazione conoscendo bene sia il punto di partenza sia quello di arrivo.",
+      stackTitle: 'Tutte le tecnologie',
+      download: 'Scarica il mio CV (PDF)'
     },
     cv: {
       role: 'Sviluppatore software',
@@ -125,14 +125,14 @@ export const messages = {
     },
     footer: {
       madeWith: 'Fatto con',
-      heart: 'passione'
+      heart: 'il cuore'
     }
   },
 
   en: {
     nav: {
       home: 'Home',
-      curriculum: 'Curriculum',
+      curriculum: 'CV',
       projects: 'Projects',
       toggle: 'Open or close the menu',
       language: 'Language',
@@ -147,15 +147,15 @@ export const messages = {
       newTab: '(opens in a new tab)'
     },
     meta: {
-      home: 'Nisiix Dev, software developer: custom business management software, tools and templates for business platforms, modern web interfaces with Vue.js.',
-      curriculum: "Nisiix Dev's curriculum: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Available as a PDF download.",
+      home: 'Nisiix Dev, software developer: custom business management software, tools and templates for business platforms, and modern web interfaces built with Vue.js.',
+      curriculum: "Nisiix Dev's CV: skills in Visual Basic 6, C#, JavaScript, Vue.js, Express.js and Java. Available as a PDF download.",
       projects: 'Projects by Nisiix Dev: Todo Doto, a desktop app for project roadmaps, and Tradermon, an educational investing game.',
       notFound: 'The page you are looking for does not exist.',
       ogImageAlt: 'NISIIX written with golden 3D blocks on a dark grid'
     },
     titles: {
       home: 'Home — Nisiix Dev',
-      curriculum: 'Curriculum — Nisiix Dev',
+      curriculum: 'CV — Nisiix Dev',
       projects: 'Projects — Nisiix Dev',
       notFound: 'Page not found — Nisiix Dev'
     },
@@ -169,18 +169,18 @@ export const messages = {
       slideReady: 'press Enter to confirm',
       slideCharge: '{n} percent charged',
       hello: "Hi, I'm",
-      subtitle: 'Software developer specialised in business management software, digital tools and modern interfaces that make a difference.',
+      subtitle: 'I build business software, digital tools and modern interfaces that are simple to use.',
       scroll: 'Scroll',
       scrollLabel: 'Scroll to the next section',
       aboutTitle: 'About me',
       aboutSubtitle: 'My background and how I approach software development.',
       journeyTitle: 'My journey',
       stackLabel: 'Main technologies',
-      journeyText1: 'I am a software developer and a sports lover, with a passion for technology that goes back to my teenage years. Back then I was mostly into using the PC, exploring new technologies and playing video games; then I started building my first PCs and, later on, writing my first lines of code.',
-      journeyText2: 'Over a career that now spans a decade, I have worked mainly and in depth with <strong>Visual Basic 6</strong> and <strong>Microsoft Visual C#</strong>, building desktop business applications and enterprise solutions. I later broadened my skills by working on parts of existing projects in <strong>Vue.js</strong> with JavaScript and in <strong>Netbeans</strong> with Java, contributing to web and backend modules.',
+      journeyText1: 'I am a software developer and a sports enthusiast. My passion for technology goes back to my teenage years: at first I used the PC mainly to explore new technologies and play video games, then I started building my own computers and, later, writing my first lines of code.',
+      journeyText2: 'Over a ten-year career I have worked mainly with <strong>Visual Basic 6</strong> and <strong>Microsoft Visual C#</strong>, building desktop business applications and enterprise solutions. I later broadened my skills by working on existing projects in <strong>Vue.js</strong> (JavaScript) and <strong>Java</strong> (with NetBeans), contributing to web and backend modules.',
       philosophyTitle: 'My philosophy',
-      philosophyText1: 'My approach to development is driven by simplicity: software should be easy to understand, easy to change and easy to use. I am not a fan of overly complex solutions; I prefer a simple one, with few features, that does exactly what it has to do.',
-      philosophyText2: 'I believe <strong>Artificial Intelligence</strong> is an extraordinarily useful tool that can speed up and strengthen a developer\'s work. AI helps you explore solutions, automate repetitive tasks and get the first steps of a project done faster. However, a <strong>solid prior knowledge</strong> of software development is essential: without understanding architectural principles, design patterns and business logic, AI remains a tool without direction that risks doing more harm than good.',
+      philosophyText1: 'My approach to development is driven by simplicity: software should be easy to understand, easy to change and easy to use. I am not a fan of overly complex solutions: I\'d rather have a simple solution with few features that does exactly what it needs to.',
+      philosophyText2: 'I believe <strong>artificial intelligence</strong> is an extraordinary tool for speeding up a developer\'s work: it helps you explore solutions, automate repetitive tasks and get started faster. But <strong>solid prior knowledge</strong> of software development is essential: without understanding architecture, design patterns and business logic, AI is a tool without direction that risks creating more problems than it solves.',
       activitiesTitle: 'What I do',
       activitiesSubtitle: 'The work that fills my days.',
       activities: [
@@ -190,7 +190,7 @@ export const messages = {
         },
         {
           title: 'Tools and templates',
-          description: 'I build utilities and reusable templates that speed up development on business platforms. From code generators to scaffolding systems, every tool comes from a real need to cut development time and keep different projects consistent.'
+          description: 'I build utilities and reusable templates that speed up development on business platforms. From code generators to project starter kits, every tool comes from a real need to cut development time and keep different projects consistent.'
         },
         {
           title: 'Migration and modernisation',
@@ -206,11 +206,11 @@ export const messages = {
         },
         {
           title: 'Music',
-          description: 'Music is the soundtrack of my life. I listen to a huge range of genres, from rock to electronic, from hip-hop to jazz, through house and techno. When I can, I relax on my DJ console: mixing tracks and creating helps me switch off.'
+          description: 'Music is the soundtrack of my life. I listen to a huge range of genres, from rock to electronic, from hip-hop to jazz, through house and techno. When I can, I unwind at my DJ console: mixing tracks and putting together new sets helps me switch off.'
         },
         {
           title: 'Sports',
-          description: 'Sport is a key part of my life. I regularly play football and padel, two passions that have always been with me. I enjoy pretty much every sport, and I also like volleyball, table tennis and skiing.'
+          description: 'Sport is a key part of my life. I regularly play football and padel, two passions that have always been with me. I\'m a natural at most sports, and I also enjoy volleyball, table tennis and skiing.'
         }
       ],
       contactsTitle: 'Get in touch',
@@ -221,12 +221,12 @@ export const messages = {
     curriculum: {
       badge: 'Technical skills',
       titleStart: 'My',
-      titleAccent: 'curriculum',
-      subtitle: 'Languages, tools and platforms I have mastered over my career. Mainly business management software, tools and templates for business platforms; secondly websites and web applications built for fun, for personal use and for learning.',
+      titleAccent: 'CV',
+      subtitle: 'Languages, tools and platforms I use in my work. I mainly build business management software, plus tools and templates for those platforms; in my spare time I also build websites and web apps, for fun and to keep learning.',
       specTitle: 'Area of expertise',
-      specText: 'My main area of expertise is <strong class="gold-text">business management software</strong>, from architectural design to full implementation. I build <strong class="gold-text">tools</strong> and <strong class="gold-text">templates</strong> for business platforms that speed up development and ensure consistency and quality across the whole application ecosystem. My experience with both legacy (VB6) and modern (Vue.js, C#) technologies lets me handle migration and modernisation projects with a complete understanding of the technology stack.',
-      stackTitle: 'Full technology stack',
-      download: 'Download CV as PDF'
+      specText: 'My main area of expertise is <strong class="gold-text">business management software</strong>, from architectural design to full implementation. I build <strong class="gold-text">tools</strong> and <strong class="gold-text">templates</strong> for business platforms that speed up development and ensure consistency and quality across the whole application ecosystem. My experience with both legacy (VB6) and modern (Vue.js, C#) technologies lets me handle migration and modernisation projects knowing both where the code starts and where it needs to go.',
+      stackTitle: 'All technologies',
+      download: 'Download my CV (PDF)'
     },
     cv: {
       role: 'Software developer',
@@ -248,7 +248,7 @@ export const messages = {
     notFound: {
       badge: 'Error 404',
       title: 'Page not found',
-      text: 'The page you are looking for does not exist or has moved. Head back home to keep exploring the site.',
+      text: 'The page you are looking for does not exist or has been moved. Head back home to keep exploring the site.',
       back: 'Back to home'
     },
     footer: {

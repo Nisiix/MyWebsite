@@ -8,7 +8,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
       category: { it: 'Sviluppo desktop', en: 'Desktop development' },
       icon: 'pi pi-desktop',
       items: [
-        { name: 'Visual Basic 6', description: { it: 'Sviluppo applicazioni gestionali legacy, migrazione e manutenzione di sistemi enterprise consolidati.', en: 'Legacy business applications, migration and maintenance of established enterprise systems.' } },
+        { name: 'Visual Basic 6', description: { it: 'Sviluppo di applicazioni gestionali legacy, migrazione e manutenzione di sistemi aziendali consolidati.', en: 'Legacy business applications, migration and maintenance of established enterprise systems.' } },
         { name: 'Microsoft Visual C#', description: { it: 'Applicazioni desktop .NET, WinForms e servizi Windows per ambienti aziendali.', en: '.NET desktop applications, WinForms and Windows services for business environments.' } }
       ]
     },
@@ -25,7 +25,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
       icon: 'pi pi-server',
       items: [
         { name: 'Express.js', description: { it: 'API RESTful, middleware personalizzati, autenticazione JWT e integrazione database.', en: 'RESTful APIs, custom middleware, JWT authentication and database integration.' } },
-        { name: 'Java + Netbeans', description: { it: 'Sviluppo applicazioni enterprise, servlet, integrazione con database relazionali e sviluppo di servizi backend.', en: 'Enterprise applications, servlets, relational database integration and backend services.' } }
+        { name: 'Java + NetBeans', description: { it: 'Applicazioni enterprise, servlet, integrazione con database relazionali e servizi backend.', en: 'Enterprise applications, servlets, relational database integration and backend services.' } }
       ]
     }
   ])
@@ -34,7 +34,7 @@ export const useCurriculumStore = defineStore('curriculum', () => {
   const techStack = ref([
     'Visual Basic 6', 'C#', '.NET', 'WinForms',
     'JavaScript', 'Vue.js', 'Vuetify', 'Pinia', 'PrimeVue',
-    'Express.js', 'Node.js', 'REST API', 'Java', 'Netbeans',
+    'Express.js', 'Node.js', 'REST API', 'Java', 'NetBeans',
     'Microsoft Access', 'NHibernate', 'Figma', 'Git', 'HTML5', 'CSS3'
   ])
 
