@@ -36,6 +36,8 @@ const router = createRouter({
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
+    // Cambio lingua: stessa pagina nell'altra lingua, la posizione resta quella di prima
+    if (from !== START_LOCATION && to.name === from.name && !to.hash && stripLocale(to.path) === stripLocale(from.path)) return false
     if (to.hash) {
       const target = { el: to.hash, top: 90, behavior: 'smooth' }
       // Coming from another page, wait for the page transition to finish

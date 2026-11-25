@@ -55,7 +55,9 @@ function choose(code) {
     locale.value = code
     return
   }
-  router.push({ path: localePath(route.path, code), hash: route.hash, query: route.query })
+  // Senza l'ancora: dopo "Contattami" l'indirizzo ha #contatti e il cambio lingua
+  // farebbe scorrere di nuovo fino ai contatti. La pagina resta dov'è (vedi scrollBehavior).
+  router.push({ path: localePath(route.path, code), query: route.query })
 }
 
 function close(focusToggle = false) {
