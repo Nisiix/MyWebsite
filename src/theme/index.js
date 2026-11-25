@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 // Tema chiaro/scuro. La scelta resta salvata; alla prima visita segue il sistema.
 // index.html applica il tema salvato prima del caricamento, per evitare lampi di colore.
 const STORAGE_KEY = 'nisiix-theme'
-const THEME_COLORS = { dark: '#0a0a0a', light: '#f7f5ef' }
+const THEME_COLORS = { dark: '#0a0a0a', light: '#ebe7dd' }
 
 function initialTheme() {
   try {

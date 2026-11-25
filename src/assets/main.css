@@ -90,22 +90,23 @@
 
 /* ---------- Tema chiaro ---------- */
 :root[data-theme='light'] {
-  --bg-primary: #f7f5ef;
-  --bg-secondary: #efece3;
-  --bg-tertiary: #e4dfd1;
-  --bg-card: #ffffff;
-  --bg-card-hover: #fffdf6;
-  --bg-surface: #f2efe7;
+  --bg-primary: #ebe7dd;
+  --bg-secondary: #e3dfd3;
+  --bg-tertiary: #d9d3c4;
+  --bg-card: #f2efe7;
+  --bg-card-hover: #f5f2eb;
+  --bg-surface: #e6e2d7;
 
   --text-primary: #1f1d19;
   --text-secondary: #4a4740;
-  --text-muted: #67635a;
+  --text-muted: #5c5850;
   --text-white: #121110;
 
+  /* fondo caldo e attenuato, non bianco pieno: meno abbagliante */
   /* oro più scuro per restare leggibile sul fondo chiaro */
-  --gold: #8f6f12;
-  --gold-light: #b08a1e;
-  --gold-dark: #735909;
+  --gold: #7a5d0c;
+  --gold-light: #9c7a16;
+  --gold-dark: #634b06;
   --gold-glow: rgba(143, 111, 18, 0.22);
   --gold-subtle: rgba(143, 111, 18, 0.08);
 
@@ -118,13 +119,13 @@
   --shadow-lg: 0 8px 32px rgba(60, 50, 20, 0.14);
   --shadow-gold: 0 4px 20px rgba(143, 111, 18, 0.15);
 
-  --nav-bg: rgba(247, 245, 239, 0.7);
-  --nav-bg-solid: rgba(247, 245, 239, 0.94);
-  --menu-bg: rgba(247, 245, 239, 0.98);
-  --section-tint: rgba(255, 255, 255, 0.55);
-  --footer-bg: rgba(239, 236, 227, 0.9);
+  --nav-bg: rgba(235, 231, 221, 0.72);
+  --nav-bg-solid: rgba(235, 231, 221, 0.95);
+  --menu-bg: rgba(235, 231, 221, 0.98);
+  --section-tint: rgba(242, 239, 231, 0.5);
+  --footer-bg: rgba(227, 223, 211, 0.92);
   --hover-tint: rgba(0, 0, 0, 0.05);
-  --vignette: rgba(120, 100, 50, 0.12);
+  --vignette: rgba(110, 90, 45, 0.14);
   color-scheme: light;
 }
 

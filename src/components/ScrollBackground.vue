@@ -94,7 +94,7 @@ const WORD_RAISE = 1 // righe di cui la scritta sta più in alto rispetto al cen
 // Colori per tema: griglia, facce dei blocchi (oro), tetto, bordo del tetto
 const PALETTES = {
   dark: { grid: 'rgba(255, 255, 255, 0.03)', side: '212, 175, 55', sideBoost: 1, roof: '24, 22, 16', edge: '212, 175, 55' },
-  light: { grid: 'rgba(0, 0, 0, 0.05)', side: '176, 138, 30', sideBoost: 2.2, roof: '251, 245, 226', edge: '143, 111, 18' }
+  light: { grid: 'rgba(0, 0, 0, 0.05)', side: '176, 138, 30', sideBoost: 2.2, roof: '242, 236, 219', edge: '143, 111, 18' }
 }
 
 let ctx = null
