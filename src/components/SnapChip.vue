@@ -10,7 +10,7 @@
   <div
     ref="root"
     class="snap-chip"
-    :class="[{ cooling, waiting, swiping: isSlider }, phase && 'is-' + phase]"
+    :class="[{ cooling, waiting, swiping: isSlider, hinting }, phase && 'is-' + phase]"
     :style="[fallStyle, { '--k': scale }]"
     @pointerenter="onEnter"
     @pointerleave="onLeave"
@@ -38,6 +38,15 @@
         >
           <i class="pi pi-code" aria-hidden="true"></i><span>{{ labels.chip }}</span>
         </button>
+        <!-- suggerimento grafico (finché non si è mai girata): un riflesso percorre la chip,
+             un cursore fantasma ci passa sopra e la chip accenna a girarsi -->
+        <span v-if="faces[i] === 'chip' && hinting" class="chip-hint" aria-hidden="true">
+          <span class="chip-shine"></span>
+          <span class="chip-cursor">
+            <span class="chip-ripple"></span>
+            <svg class="chip-arrow" viewBox="0 0 16 20" width="14" height="18"><path d="M1.5 1.5v14.2l3.7-3.4 2.4 5.6 2.6-1.1-2.4-5.5 5-.4z" /></svg>
+          </span>
+        </span>
         <template v-else-if="mounted(i)">
           <InfinitySwipe
             v-if="faces[i] === 'snap'"
@@ -106,6 +115,8 @@ const sizer = ref(null)
 const scale = ref(0.72) // altezza della chip / altezza dello slider, misurata al montaggio
 let sizeObserver
 const cooling = ref(false)
+// il suggerimento sulla chip resta finché il visitatore non l'ha girata almeno una volta
+const hinting = ref(faces.value[0] === 'chip')
 let coolTimer, phaseTimer, fallTimer, backTimer
 // dopo lo schiocco il pulsante cade fuori dallo schermo come i blocchi di NISIIX,
 // resta nascosto (occupando il suo posto) e riappare in dissolvenza a scritta completa
@@ -127,6 +138,7 @@ function show(kind, back = false) {
   const idx = ((next % 2) + 2) % 2
   const f = [...faces.value]
   f[idx] = kind
+  if (kind === 'snap') hinting.value = false
   faces.value = f
   turns.value = next
 }
@@ -390,9 +402,112 @@ onUnmounted(() => {
   cursor: progress;
 }
 
+/* ---- suggerimento: "passa qui sopra" ----
+   ogni 6 s un riflesso dorato attraversa la chip, un cursore fantasma entra dal basso a
+   destra, "tocca" la chip (anello) e lei accenna mezzo giro, come fa all'hover vero */
+.chip-hint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.chip-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.chip-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--gold) 35%, transparent) 50%, transparent);
+  transform: translateX(-110%);
+  animation: chip-shine 6s 2.4s ease-in-out infinite;
+}
+.chip-cursor {
+  position: absolute;
+  right: 14%;
+  bottom: -6px;
+  width: 14px;
+  height: 18px;
+  color: var(--gold);
+  opacity: 0;
+  animation: chip-cursor 6s 2.4s ease-in-out infinite;
+}
+.chip-arrow {
+  display: block;
+  fill: var(--bg-primary, #fff);
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+.chip-ripple {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: chip-ripple 6s 2.4s ease-out infinite;
+}
+.snap-chip.hinting:not(.swiping) .snap-inner {
+  animation: chip-peek 6s 2.4s ease-in-out infinite;
+}
+@keyframes chip-shine {
+  0%, 8% { transform: translateX(-110%); }
+  26%, 100% { transform: translateX(260%); }
+}
+@keyframes chip-cursor {
+  0%, 22% { opacity: 0; transform: translate(18px, 16px); }
+  32% { opacity: 1; transform: translate(0, 0); }
+  58% { opacity: 1; transform: translate(0, 0); }
+  68%, 100% { opacity: 0; transform: translate(14px, 12px); }
+}
+@keyframes chip-ripple {
+  0%, 33% { opacity: 0; transform: scale(0.4); }
+  36% { opacity: 0.9; }
+  50%, 100% { opacity: 0; transform: scale(2.2); }
+}
+@keyframes chip-peek {
+  0%, 36% { rotate: y 0deg; }
+  44% { rotate: y -28deg; }
+  50% { rotate: y -22deg; }
+  60%, 100% { rotate: y 0deg; }
+}
+/* sul touch non c'è un cursore: resta solo l'anello del tocco */
+@media (hover: none) {
+  .chip-arrow {
+    visibility: hidden;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .snap-inner {
     transition-duration: 0.2s;
+  }
+  /* niente movimento: il cursore resta fermo sulla chip, ben visibile */
+  .chip-shine,
+  .chip-ripple {
+    display: none;
+  }
+  .chip-cursor {
+    animation: none;
+    opacity: 0.9;
+  }
+  .snap-chip.hinting:not(.swiping) .snap-inner {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) and (hover: none) {
+  .chip-arrow {
+    visibility: visible;
   }
 }
 </style>

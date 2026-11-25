@@ -42,3 +42,24 @@
    al gesto in corso (data-side), che torna "none" al rilascio: così mentre l'elmo torna a
    riposo il riempimento che si ritira resta rosso invece di diventare viola per un attimo
    (regole sopra modificate di conseguenza). */
+
+/* Adattamento al sito: suggerimento grafico del gesto (nessun testo). A riposo, ogni 3,2 s
+   una maniglia fantasma parte dalla maniglia vera e scivola fino in fondo nel verso del gesto,
+   lasciando una scia del colore dell'energia; le frecce si accendono in sequenza nello stesso
+   verso. Sparisce appena si tocca/trascina o se il pulsante è disattivato. Con
+   prefers-reduced-motion niente movimento: la sagoma fantasma resta ferma nel punto d'arrivo. */
+.av-hint{position:absolute;inset:0;container-type:inline-size;pointer-events:none;z-index:2;transition:opacity .25s}
+.av-swipe:not([data-phase=idle]) .av-hint,.av-swipe[data-disabled=true] .av-hint,.av-swipe:has(.av-handle:hover) .av-hint,.av-swipe:has(.av-handle:focus-visible) .av-hint{opacity:0}
+.av-ghost{position:absolute;top:var(--pad);left:var(--pad);width:var(--size);height:var(--size);display:grid;place-items:center;border-radius:17px;border:1px dashed color-mix(in srgb,var(--energy) 80%,#fff);background:color-mix(in srgb,var(--energy) 18%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--energy) 55%,transparent);opacity:0;animation:av-ghost-r 3.2s 1s cubic-bezier(.45,0,.2,1) infinite}
+.av-ghost img{width:70%;height:70%;object-fit:contain;opacity:.75;filter:drop-shadow(0 0 4px var(--energy))}
+.av-hint-trail{position:absolute;top:calc(var(--pad) + var(--size) * .3);height:calc(var(--size) * .4);left:calc(var(--pad) + var(--size) / 2);right:calc(var(--pad) + var(--size) / 2);border-radius:99px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--energy) 55%,transparent));transform:scaleX(0);transform-origin:left center;opacity:0;animation:av-trail 3.2s 1s cubic-bezier(.45,0,.2,1) infinite}
+.av-swipe[data-mode=ironman] .av-ghost{left:auto;right:var(--pad);animation-name:av-ghost-l}
+.av-swipe[data-mode=ironman] .av-hint-trail{transform-origin:right center;background:linear-gradient(270deg,transparent,color-mix(in srgb,var(--energy) 55%,transparent))}
+.av-swipe[data-phase=idle]:not([data-disabled=true]) .av-direction i{animation:av-chevron 3.2s 1s ease-in-out infinite}
+.av-swipe[data-phase=idle]:not([data-disabled=true]) .av-direction i:nth-child(2){animation-delay:1.12s}
+.av-swipe[data-phase=idle]:not([data-disabled=true]) .av-direction i:nth-child(3){animation-delay:1.24s}
+@keyframes av-ghost-r{0%,6%{opacity:0;transform:translateX(0) scale(.9)}14%{opacity:.9;transform:translateX(0) scale(1)}52%{opacity:.9;transform:translateX(calc(100cqw - var(--size) - 2 * var(--pad)))}66%,100%{opacity:0;transform:translateX(calc(100cqw - var(--size) - 2 * var(--pad))) scale(.9)}}
+@keyframes av-ghost-l{0%,6%{opacity:0;transform:translateX(0) scale(.9)}14%{opacity:.9;transform:translateX(0) scale(1)}52%{opacity:.9;transform:translateX(calc(-1 * (100cqw - var(--size) - 2 * var(--pad))))}66%,100%{opacity:0;transform:translateX(calc(-1 * (100cqw - var(--size) - 2 * var(--pad)))) scale(.9)}}
+@keyframes av-trail{0%,12%{opacity:0;transform:scaleX(0)}16%{opacity:1}52%{opacity:1;transform:scaleX(1)}68%,100%{opacity:0;transform:scaleX(1)}}
+@keyframes av-chevron{0%,14%,46%,100%{filter:drop-shadow(0 0 4px currentColor)}30%{filter:drop-shadow(0 0 8px currentColor) brightness(1.9)}}
+@media(prefers-reduced-motion:reduce){.av-hint-trail{display:none}.av-ghost{animation:none!important;opacity:.55;left:auto;right:var(--pad)}.av-swipe[data-mode=ironman] .av-ghost{right:auto;left:var(--pad)}}
