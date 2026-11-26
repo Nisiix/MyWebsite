@@ -28,8 +28,8 @@
         :aria-hidden="i !== visible"
         :inert="i !== visible"
       >
+        <template v-if="faces[i] === 'chip'">
         <button
-          v-if="faces[i] === 'chip'"
           type="button"
           class="chip-btn"
           :tabindex="i === visible ? 0 : -1"
@@ -40,13 +40,14 @@
         </button>
         <!-- suggerimento grafico (finché non si è mai girata): un riflesso percorre la chip,
              un cursore fantasma ci passa sopra e la chip accenna a girarsi -->
-        <span v-if="faces[i] === 'chip' && hinting" class="chip-hint" aria-hidden="true">
+        <span v-if="hinting" class="chip-hint" aria-hidden="true">
           <span class="chip-shine"></span>
           <span class="chip-cursor">
             <span class="chip-ripple"></span>
             <svg class="chip-arrow" viewBox="0 0 16 20" width="14" height="18"><path d="M1.5 1.5v14.2l3.7-3.4 2.4 5.6 2.6-1.1-2.4-5.5 5-.4z" /></svg>
           </span>
         </span>
+        </template>
         <template v-else-if="mounted(i)">
           <InfinitySwipe
             v-if="faces[i] === 'snap'"
